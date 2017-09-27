@@ -14,16 +14,10 @@ return {
 	
 	POP		= 0x0B, -- pop value from the top of the stack
 	
-	JMP		= 0x0C, -- jump to instruction
-	JZ			= 0x0D, -- jump to instruction if TOP is 0
-	JNZ		= 0x0E, -- jump to instruction if TOP is not 0
-	JEQ		= 0x0D, -- jump to instruction if TOP is equal
-	JNE		= 0x0E, -- jump to instruction if TOP is not equal
-	JLT		= 0x0F, -- jump to instruction if TOP is less than
-	JGT		= 0x10, -- jump to instruction if TOP is greater than
-	JLE		= 0x11, -- jump to instruction if top is less than or equal to
-	JGE		= 0x12, -- jump to instruction if top is greater than or equal to
+	BR			= 0x0C, -- branch to instruction
+	BRT		= 0x0D, -- branch to instruction if TOP is true
+	BRF		= 0x0E, -- branch to instruction if TOP is false
 	
-	ADDU		= 0x13, -- unary addition
-	ADDB		= 0x14, -- binary addition
+	ADDU		= 0x0F, -- unary addition
+	ADDB		= 0x10, -- binary addition
 }

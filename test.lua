@@ -23,15 +23,16 @@ vm:addFunction(0, 0, {13, 37}, {
 	{opcode = 0x02, operand = 1},
 	{opcode = 0x02, operand = 2},
 	{opcode = 0x09, operand = 2 },
-	--{opcode = 0x0B					 },
-	--{opcode = 0x05					 },
+	--{opcode = 0x0B					 }, -- pop result
+	--{opcode = 0x05					 }, -- push null
 	{opcode = 0x0A					 }
 })
 
-vm:addFunction(2, 0, {}, {
+vm:addFunction(2, 1, {}, {
 	{opcode = 0x04, operand = 1},
 	{opcode = 0x04, operand = 2},
-	{opcode = 0x14					},
+	{opcode = 0x10					},
+	--{opcode = 0x08, operand = 3}, -- store result in local
 	{opcode = 0x0A					},
 })
 
