@@ -167,14 +167,14 @@ local vm = {
 			self.ip = func.bytecode[op]
 		
 		elseif (opcode == opcodes.BRT) then
-			if (self.stack[#self.stack] == true) then
+			if (table.remove(self.stack) == true) then
 				self.ip = func.bytecode[op]
 			else
 				self.ip = self.ip + 1
 			end
 		
 		elseif (opcode == opcodes.BRF) then
-			if (self.stack[#self.stack] == false) then
+			if (table.remove(self.stack) == false) then
 				self.ip = func.bytecode[op]
 			else
 				self.ip = self.ip + 1
