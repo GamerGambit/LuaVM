@@ -166,8 +166,8 @@ local vm = {
 			table.remove(self.stack)
 		
 		elseif (opcode == opcodes.BR) then
-			self.ip = func.bytecode[op]
-		
+			self.ip = op
+
 		elseif (opcode == opcodes.BRT) then
 			if (table.remove(self.stack) == true) then
 				self.ip = op
