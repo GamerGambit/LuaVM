@@ -30,4 +30,11 @@ return {
 	MUL		= 0x18, -- [binary] multiplication
 	DIV		= 0x19, -- [binary] division
 	MOD		= 0x1A, -- [binary] modulo
+	
+	BAND		= 0x1B, -- bitwiseand
+	BOR		= 0x1C, -- bitwise or
+	BXOR		= 0x1D, -- bitwise exclusive or
+	BNEG		= 0x1E, -- bitwise negation/not/flip/complement
+	BSHL		= 0x1F, -- bitwise left shift
+	BSHR		= 0x20, -- bitwise right shift
 }
