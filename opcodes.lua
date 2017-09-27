@@ -30,6 +30,7 @@ return {
 	MUL		= 0x18, -- [binary] multiplication
 	DIV		= 0x19, -- [binary] division
 	MOD		= 0x1A, -- [binary] modulo
+	EXP		= 0x1B, -- [binary] exponent
 
 	BAND		= 0x1B, -- bitwiseand
 	BOR		= 0x1C, -- bitwise or

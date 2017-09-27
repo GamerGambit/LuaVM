@@ -248,6 +248,12 @@ local vm = {
 			local op1 = table.remove(self.stack)
 			table.insert(self.stack, op1 % op2)
 
+		elseif (opcode == opcodes.EXP) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, math.pow(op1, op2))
+
 		elseif (opcode == opcodes.BAND) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
