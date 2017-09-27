@@ -137,8 +137,13 @@ local vm = {
 			self.locals[op] = table.remove(self.stack)
 		
 		elseif (opcode == opcodes.CALL) then
-			table.insert(self.call_stack, newStackFrame(self.ip - op, self.ip + 1))
+			local newFunc = self.globals[self.ip - op]
+			table.insert(self.call_stack, newStackFrame(newFunc.addr, self.ip + 1))
 			local index = #self.call_stack
+			
+			for l = 1, (func.numParameters + func.numLocals) do
+				table.insert(self.call_stack[index].locals, nil)
+			end
 			
 			for arg = 1, op do
 				self.call_stack[index].locals[arg] = table.remove(self.stack) -- pop argument
