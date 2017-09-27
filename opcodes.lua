@@ -26,4 +26,8 @@ return {
 	CMP_GE	= 0x14, -- compare the top 2, push true if the second is greater than or equal to the first
 	
 	ADDB		= 0x16, -- binary addition
+	SUBB		= 0x17, -- binary subtraction
+	MUL		= 0x18, -- [binary] multiplication
+	DIV		= 0x19, -- [binary] division
+	MOD		= 0x1A, -- [binary] modulo
 }

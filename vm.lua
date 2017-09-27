@@ -220,11 +220,34 @@ local vm = {
 		
 		elseif (opcode == opcodes.ADDB) then
 			self.ip = self.ip + 1
-			
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			
 			table.insert(self.stack, op1 + op2)
+			
+		elseif (opcode == opcodes.SUBB) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 - op2)
+		
+		elseif (opcode == opcodes.MUL) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 * op2)
+		
+		elseif (opcode == opcodes.DIV) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 / op2)
+		
+		elseif (opcode == opcodes.MOD) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 % op2)
+			
 		end
 	end
 }
