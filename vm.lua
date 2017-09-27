@@ -31,7 +31,7 @@ local vm = {
 
 				print(string.format("               > Constants:"))
 				for a, b in ipairs(v.constants) do
-					print(string.format("                       > %s\t%s", a, tostring(b)))
+					print(string.format("                       > %s\t%s\t%s", a, b.type, b:tostring()))
 				end
 				print()
 
@@ -176,6 +176,17 @@ local vm = {
 			else
 				self.ip = self.ip + 1
 			end
+
+		elseif (opcode == opcodes.CONCAT) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, copyType(op1, op1:concat(op2)))
+
+		elseif (opcode == opcodes.HASH) then
+			self.ip = self.ip + 1
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, copyType(op1:hash()))
 
 		elseif (opcode == opcodes.CMP_EQ) then
 			self.ip = self.ip + 1
