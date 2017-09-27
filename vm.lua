@@ -18,10 +18,11 @@ local vm = {
 	ip = 1,
 	sfp = 1,
 	
-	addFunction = function(self, parameters, constants, bytecode)
+	addFunction = function(self, numParameters, numLocals, constants, bytecode)
 		table.insert(self.globals, {
 			addr = #self.globals + 1,
-			parameters = parameters,
+			numParameters = numParameters,
+			numLocals = numLocals,
 			constants = constants,
 			bytecode = bytecode
 		})
@@ -35,7 +36,8 @@ local vm = {
 			print(string.format("       > %s\t%s", k, tostring(v)))
 			if (type(v) == "table") then
 				print(string.format("               > Address: %s", v.addr))
-				print(string.format("               > Parameters: %d", v.parameters))
+				print(string.format("               > Parameters #: %d", v.numParameters))
+				print(string.format("               > Locals #: %d", v.numLocals))
 				
 				print(string.format("               > Constants:"))
 				for a, b in ipairs(v.constants) do
