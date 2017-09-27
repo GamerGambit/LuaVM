@@ -18,7 +18,7 @@ RET      # return value at top of stack
 
 local vm = require("vm")
 
-vm:addFunction(0, 0, {13, 37}, {
+table.insert(vm.globals, newFunction(1, 0, {}, {newNumber(13), newNumber(37)}, {
 	{opcode = 0x01, operand = 2 },
 	{opcode = 0x02, operand = 1},
 	{opcode = 0x02, operand = 2},
@@ -26,9 +26,9 @@ vm:addFunction(0, 0, {13, 37}, {
 	--{opcode = 0x0B					 }, -- pop result
 	--{opcode = 0x05					 }, -- push null
 	{opcode = 0x0A					 }
-})
+}))
 
-vm:addFunction(2, 1, {50, 100}, {
+table.insert(vm.globals, newFunction(2, 1, {"x", "y"}, {newNumber(50), newNumber(100)}, {
 	{opcode = 0x04, operand = 1 }, -- push L1 (arg1)
 	{opcode = 0x04, operand = 2 }, -- push L2 (arg2)
 	{opcode = 0x16					 }, -- pop 2 from the stack, push add result onto stack
@@ -43,9 +43,9 @@ vm:addFunction(2, 1, {50, 100}, {
 	{opcode = 0x04, operand = 3 }, -- push L3
 	{opcode = 0x09, operand = 1 }, -- call
 	{opcode = 0x0A					 }
-})
+}))
 
-vm:addFunction(1, 0, {2}, {
+table.insert(vm.globals, newFunction(3, 0, {"x"}, {newNumber(2)}, {
 	{opcode = 0x04, operand = 1},
 	{opcode = 0x04, operand = 1},
 	{opcode = 0x18					}, -- square L1
@@ -54,7 +54,7 @@ vm:addFunction(1, 0, {2}, {
 	{opcode = 0x19					}, -- halve L1
 	{opcode = 0x17					}, -- subtract half of L1 from L1 squared
 	{opcode = 0x0A					}
-})
+}))
 
 --vm:dump()
 
