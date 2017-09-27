@@ -134,7 +134,7 @@ local vm = {
 		
 		elseif (opcode == opcodes.STOREL) then
 			self.ip = self.ip + 1
-			self.locals[op] = table.remove(self.stack)
+			sf.locals[op] = table.remove(self.stack)
 		
 		elseif (opcode == opcodes.CALL) then
 			local newFunc = self.globals[self.ip - op]
