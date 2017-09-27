@@ -1,19 +1,20 @@
 --[[
-# subroutine
-.foo
-	LOADA 0 # load argument 0 onto the stack
-	LOADA 1 # load argument 1 onto the stack
-	ADDB    # binary add, pops 2 operands from the stack
-	RET     # return value at top of stack
-	
-LOADG 1  # load .foo onto the stack
-LOADK 0 # push literal 13 onto stack
-LOADK 1 # push literal 37 onto stack
-CALL 2   # call .foo with 2 arguments (pops the 2 arguments and .foo)
-POP      # pop return value since its not used
-LOADN    # push null onto the stack
-RET      # return value at top of stack
+function bar(x)
+	return (x * x) - (x / 2)
+end
 
+function foo(x, y)
+	local v = x + y
+	if (v == 50) then
+		v = #("ye" .. "man")
+	end
+
+	return bar(v)
+end
+
+function main()
+	return foo(13, 37)
+end
 ]]
 
 local vm = require("vm")
@@ -28,7 +29,7 @@ table.insert(vm.globals, newFunction(1, 0, {}, {newNumber(13), newNumber(37)}, {
 	{opcode = 0x09					 }
 }))
 
-table.insert(vm.globals, newFunction(2, 1, {"x", "y"}, {newNumber(50), newNumber(100)}, {
+table.insert(vm.globals, newFunction(2, 1, {"x", "y"}, {newNumber(50), newString("ye"), newString("man")}, {
 	{opcode = 0x03, operand = 1 }, -- push L1 (arg1)
 	{opcode = 0x03, operand = 2 }, -- push L2 (arg2)
 	{opcode = 0x16					 }, -- pop 2 from the stack, push add result onto stack
@@ -36,8 +37,11 @@ table.insert(vm.globals, newFunction(2, 1, {"x", "y"}, {newNumber(50), newNumber
 	{opcode = 0x03, operand = 3 }, -- push L3
 	{opcode = 0x02, operand = 1 }, -- push K1
 	{opcode = 0x10					 }, -- pop 2 from the stack, push equality comparison onto the stack
-	{opcode = 0x0D, operand = 11}, -- branch to instruction 11 if local3 and constant1 are not equal
+	{opcode = 0x0D, operand = 14}, -- branch to instruction 11 if local3 and constant1 are not equal
 	{opcode = 0x02, operand = 2 }, -- push K2
+	{opcode = 0x02, operand = 3 }, -- push K3
+	{opcode = 0x0E					 }, -- concate K3 to K2
+	{opcode = 0x0F					 }, -- push #(K2 .. K3)
 	{opcode = 0x07, operand = 3 }, -- store K2 into L3
 	{opcode = 0x01, operand = 3 }, -- push G3
 	{opcode = 0x03, operand = 3 }, -- push L3
