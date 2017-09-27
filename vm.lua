@@ -247,7 +247,42 @@ local vm = {
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
 			table.insert(self.stack, op1 % op2)
-			
+		
+		elseif (opcode == opcodes.BAND) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, bit.band(op1, op2))
+		
+		elseif (opcode == opcodes.BOR) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, bit.bor(op1, op2))
+		
+		elseif (opcode == opcodes.BXOR) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, bit.bxor(op1, op2))
+		
+		elseif (opcode == opcodes.BNEG) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, bit.bnot(op1, op2))
+		
+		elseif (opcode == opcodes.BSHL) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, bit.lshift(op1, op2))
+		
+		elseif (opcode == opcodes.BSHR) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, bit.rshift(op1, op2))
 		end
 	end
 }
