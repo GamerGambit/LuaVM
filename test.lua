@@ -28,12 +28,19 @@ vm:addFunction(0, 0, {13, 37}, {
 	{opcode = 0x0A					 }
 })
 
-vm:addFunction(2, 1, {}, {
-	{opcode = 0x04, operand = 1},
-	{opcode = 0x04, operand = 2},
-	{opcode = 0x10					},
-	--{opcode = 0x08, operand = 3}, -- store result in local
-	{opcode = 0x0A					},
+vm:addFunction(2, 1, {50, 100}, {
+	{opcode = 0x04, operand = 1 }, -- push L1 (arg1) onto the stack
+	{opcode = 0x04, operand = 2 }, -- push L2 (arg2) onto the stack
+	{opcode = 0x16					 }, -- pop 2 from the stack, push add result onto stack
+	{opcode = 0x08, operand = 3 }, -- store result in L3
+	{opcode = 0x04, operand = 3 }, -- push L3 onto the stack
+	{opcode = 0x02, operand = 1 }, -- push K1 onto the stack
+	{opcode = 0x0F					 }, -- pop 2 from the stack, push equality comparison onto the stack
+	{opcode = 0x0E, operand = 11}, -- branch to instruction 11 if local3 and constant1 are not equal
+	{opcode = 0x02, operand = 2 }, -- push K2 onto the stack
+	{opcode = 0x08, operand = 3 }, -- store K2 into L3
+	{opcode = 0x04, operand = 3 }, -- push L3 onto the stack
+	{opcode = 0x0A					 }
 })
 
 --vm:dump()

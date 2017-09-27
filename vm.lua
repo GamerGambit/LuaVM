@@ -182,6 +182,42 @@ local vm = {
 				self.ip = self.ip + 1
 			end
 		
+		elseif (opcode == opcodes.CMP_EQ) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 == op2)
+		
+		elseif (opcode == opcodes.CMP_NEQ) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 ~= op2)
+		
+		elseif (opcode == opcodes.CMP_LT) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 < op2)
+		
+		elseif (opcode == opcodes.CMP_LE) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 <= op2)
+		
+		elseif (opcode == opcodes.CMP_GT) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 > op2)
+		
+		elseif (opcode == opcodes.CMP_GE) then
+			self.ip = self.ip + 1
+			local op2 = table.remove(self.stack)
+			local op1 = table.remove(self.stack)
+			table.insert(self.stack, op1 >= op2)
+		
 		elseif (false) then
 			-- TODO: ADDU
 		
