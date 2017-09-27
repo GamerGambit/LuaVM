@@ -99,6 +99,9 @@ function newString(str)
 		concat = function(self, other)
 			assert(other.type == "string", string.format("Cannot concatenate string with %s", other.type))
 			return self.value .. other.value
+		end,
+		hash = function(self)
+			return #self.value
 		end
 	}, base)
 end
@@ -142,4 +145,22 @@ function newBoolean(b)
 			return self:eq(other) == false
 		end
 	}, base)
+end
+
+function copyType(t, ...)
+	if (type(t) == "number") then
+		return newNumber(t)
+	elseif (type(t) == "string") then
+		return newString(t)
+	elseif (type(t) == "bool") then
+		return newBool(t)
+	elseif (t.type == "number") then
+		return newNumber(...)
+	elseif (t.type == "string") then
+		return newString(...)
+	elseif (t.type == "function") then
+		return newFunction(...)
+	elseif (t.type == "bool") then
+		return newBoolean(...)
+	end
 end
