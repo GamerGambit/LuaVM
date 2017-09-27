@@ -56,7 +56,8 @@ local vm = {
 						end
 					end
 					
-					print(string.format("                       > %s\t%s\t%s", a, name, b.operand or ""))
+					local ipStr = ((self.call_stack[self.sfp] or {func_addr = 0}).func_addr == v.addr and self.ip == a) and "\t<-- [Instruction Pointer]" or ""
+					print(string.format("                       > %s\t%s\t%s" .. ipStr, a, name, b.operand or ""))
 				end
 			end
 		end
@@ -76,7 +77,8 @@ local vm = {
 		
 		print("Call Stack:")
 		for k, v in ipairs(self.call_stack) do
-			print(string.format("       > %s", k))
+			local sfpStr = self.sfp == k and "\t\t\t\t\t<-- [Stack Frame Pointer]" or ""
+			print(string.format("       > %s" .. sfpStr, k))
 			
 			print("               > Locals")
 			for a, b in ipairs(v.locals) do
