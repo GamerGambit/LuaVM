@@ -218,9 +218,6 @@ local vm = {
 			local op1 = table.remove(self.stack)
 			table.insert(self.stack, op1 >= op2)
 		
-		elseif (false) then
-			-- TODO: ADDU
-		
 		elseif (opcode == opcodes.ADDB) then
 			self.ip = self.ip + 1
 			
