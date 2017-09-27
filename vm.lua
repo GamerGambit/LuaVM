@@ -1,3 +1,5 @@
+require("types")
+
 local opcodes = require("opcodes")
 
 local function newStackFrame(func_addr, ret_ip)
@@ -17,26 +19,14 @@ local vm = {
 
 	ip = 1,
 	sfp = 1,
-	
-	addFunction = function(self, numParameters, numLocals, constants, bytecode)
-		table.insert(self.globals, {
-			addr = #self.globals + 1,
-			numParameters = numParameters,
-			numLocals = numLocals,
-			constants = constants,
-			bytecode = bytecode
-		})
-	end,
 
 	dump = function(self)
 		print()
 		print("======== DUMP ========")
 		print("Globals:")
 		for k, v in ipairs(self.globals) do
-			print(string.format("       > %s\t%s", k, tostring(v)))
-			if (type(v) == "table") then
-				print(string.format("               > Address: %s", v.addr))
-				print(string.format("               > Parameters #: %d", v.numParameters))
+			print(string.format("       > %s\t%s\t%s", k, v.type, v:tostring()))
+			if (v.type == "function") then
 				print(string.format("               > Locals #: %d", v.numLocals))
 
 				print(string.format("               > Constants:"))
@@ -71,7 +61,7 @@ local vm = {
 
 		print("Stack:")
 		for k, v in ipairs(self.stack) do
-			print(string.format("       > %s\t%s", k, v))
+			print(string.format("       > %s\t%s\t%s", k, v.type, v:tostring()))
 		end
 		print()
 
@@ -82,7 +72,7 @@ local vm = {
 
 			print("               > Locals")
 			for a, b in ipairs(v.locals) do
-				print(string.format("                       > %s\t%s", a, tostring(b)))
+				print(string.format("                       > %s\t%s", a, b:tostring()))
 			end
 			print()
 
@@ -140,10 +130,11 @@ local vm = {
 
 		elseif (opcode == opcodes.CALL) then
 			local newFunc = self.globals[func.bytecode[self.ip - op - 1].operand]
+			assert(newFunc.type == "function")
 			table.insert(self.call_stack, newStackFrame(newFunc.addr, self.ip + 1))
 			local index = #self.call_stack
 
-			for l = 1, (func.numParameters + func.numLocals) do
+			for l = 1, (#func.parameters + func.numLocals) do
 				table.insert(self.call_stack[index].locals, nil)
 			end
 
@@ -169,14 +160,18 @@ local vm = {
 			self.ip = op
 
 		elseif (opcode == opcodes.BRT) then
-			if (table.remove(self.stack) == true) then
+			local top = table.remove(self.stack)
+			assert(top.type == "bool")
+			if (top.value == true) then
 				self.ip = op
 			else
 				self.ip = self.ip + 1
 			end
 
 		elseif (opcode == opcodes.BRF) then
-			if (table.remove(self.stack) == false) then
+			local top = table.remove(self.stack)
+			assert(top.type == "bool")
+			if (top.value == false) then
 				self.ip = op
 			else
 				self.ip = self.ip + 1
@@ -186,109 +181,109 @@ local vm = {
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 == op2)
+			table.insert(self.stack, newBoolean(op1:eq(op2)))
 
 		elseif (opcode == opcodes.CMP_NEQ) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 ~= op2)
+			table.insert(self.stack, newBoolean(op1:neq(op2)))
 
 		elseif (opcode == opcodes.CMP_LT) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 < op2)
+			table.insert(self.stack, newBoolean(op1:lt(op2)))
 
 		elseif (opcode == opcodes.CMP_LE) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 <= op2)
+			table.insert(self.stack, newBoolean(op1:le(op2)))
 
 		elseif (opcode == opcodes.CMP_GT) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 > op2)
+			table.insert(self.stack, newBoolean(op1:gt(op2)))
 
 		elseif (opcode == opcodes.CMP_GE) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 >= op2)
+			table.insert(self.stack, newBoolean(op1:ge(op2)))
 
 		elseif (opcode == opcodes.ADDB) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 + op2)
+			table.insert(self.stack, newNumber(op1:add(op2)))
 
 		elseif (opcode == opcodes.SUBB) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 - op2)
+			table.insert(self.stack, newNumber(op1:sub(op2)))
 
 		elseif (opcode == opcodes.MUL) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 * op2)
+			table.insert(self.stack, newNumber(op1:mul(op2)))
 
 		elseif (opcode == opcodes.DIV) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 / op2)
+			table.insert(self.stack, newNumber(op1:div(op2)))
 
 		elseif (opcode == opcodes.MOD) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, op1 % op2)
+			table.insert(self.stack, newNumber(op1:mod(op2)))
 
 		elseif (opcode == opcodes.EXP) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, math.pow(op1, op2))
+			table.insert(self.stack, newNumber(op1:exp(op2)))
 
 		elseif (opcode == opcodes.BAND) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, bit.band(op1, op2))
+			table.insert(self.stack, newNumber(op1:band(op2)))
 
 		elseif (opcode == opcodes.BOR) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, bit.bor(op1, op2))
+			table.insert(self.stack, newNumber(op1:bor(op2)))
 
 		elseif (opcode == opcodes.BXOR) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, bit.bxor(op1, op2))
+			table.insert(self.stack, newNumber(op1:bxor(op2)))
 
 		elseif (opcode == opcodes.BNEG) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, bit.bnot(op1, op2))
+			table.insert(self.stack, newNumber(op1:bneg(op2)))
 
 		elseif (opcode == opcodes.BSHL) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, bit.lshift(op1, op2))
+			table.insert(self.stack, newNumber(op1:bshl(op2)))
 
 		elseif (opcode == opcodes.BSHR) then
 			self.ip = self.ip + 1
 			local op2 = table.remove(self.stack)
 			local op1 = table.remove(self.stack)
-			table.insert(self.stack, bit.rshift(op1, op2))
+			table.insert(self.stack, newNumber(op1:bshr(op2)))
 		end
 	end
 }
