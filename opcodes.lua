@@ -7,7 +7,7 @@ return {
 	
 	STORE		= 0x06, -- store in memory
 	STOREG	= 0x07, -- store global
-	STOREV	= 0x08, -- store local
+	STOREL	= 0x08, -- store local
 	
 	CALL		= 0x09, -- call subroutine
 	RET		= 0x0A, -- return from subroutine
