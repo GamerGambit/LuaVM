@@ -124,8 +124,15 @@ local vm = {
 		
 		elseif (opcode == opcodes.STORE) then
 			self.ip = self.ip + 1
-			self.memory[op] = self.stack[#self.stack]
-			table.remove(self.stack)
+			self.memory[op] = table.remove(self.stack)
+		
+		elseif (opcode == opcodes.STOREG) then
+			self.ip = self.ip + 1
+			self.globals[op] = table.remove(self.stack)
+		
+		elseif (opcode == opcodes.STOREL) then
+			self.ip = self.ip + 1
+			self.locals[op] = table.remove(self.stack)
 		
 		elseif (opcode == opcodes.CALL) then
 			table.insert(self.call_stack, newStackFrame(self.ip - op, self.ip + 1))
