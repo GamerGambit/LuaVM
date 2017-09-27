@@ -25,6 +25,5 @@ return {
 	CMP_GT	= 0x13, -- compare the top 2, push true if the second is greater than the first
 	CMP_GE	= 0x14, -- compare the top 2, push true if the second is greater than or equal to the first
 	
-	ADDU		= 0x15, -- unary addition
 	ADDB		= 0x16, -- binary addition
 }
