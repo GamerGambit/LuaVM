@@ -18,6 +18,13 @@ return {
 	BRT		= 0x0D, -- branch to instruction if TOP is true
 	BRF		= 0x0E, -- branch to instruction if TOP is false
 	
-	ADDU		= 0x0F, -- unary addition
-	ADDB		= 0x10, -- binary addition
+	CMP_EQ	= 0x0F, -- compare the top 2 for equality
+	CMP_NEQ	= 0x10, -- compare the top 2 for inequality
+	CMP_LT	= 0x11, -- compare the top 2, push true if the second is less than the first
+	CMP_LE	= 0x12, -- compare the top 2, push true if the second is less than or equal to the first
+	CMP_GT	= 0x13, -- compare the top 2, push true if the second is greater than the first
+	CMP_GE	= 0x14, -- compare the top 2, push true if the second is greater than or equal to the first
+	
+	ADDU		= 0x15, -- unary addition
+	ADDB		= 0x16, -- binary addition
 }
