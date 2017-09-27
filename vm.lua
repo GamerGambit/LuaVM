@@ -139,7 +139,7 @@ local vm = {
 			sf.locals[op] = table.remove(self.stack)
 		
 		elseif (opcode == opcodes.CALL) then
-			local newFunc = self.globals[self.ip - op]
+			local newFunc = self.globals[func.bytecode[self.ip - op - 1].operand]
 			table.insert(self.call_stack, newStackFrame(newFunc.addr, self.ip + 1))
 			local index = #self.call_stack
 			
