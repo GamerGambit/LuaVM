@@ -29,18 +29,31 @@ vm:addFunction(0, 0, {13, 37}, {
 })
 
 vm:addFunction(2, 1, {50, 100}, {
-	{opcode = 0x04, operand = 1 }, -- push L1 (arg1) onto the stack
-	{opcode = 0x04, operand = 2 }, -- push L2 (arg2) onto the stack
+	{opcode = 0x04, operand = 1 }, -- push L1 (arg1)
+	{opcode = 0x04, operand = 2 }, -- push L2 (arg2)
 	{opcode = 0x16					 }, -- pop 2 from the stack, push add result onto stack
 	{opcode = 0x08, operand = 3 }, -- store result in L3
-	{opcode = 0x04, operand = 3 }, -- push L3 onto the stack
-	{opcode = 0x02, operand = 1 }, -- push K1 onto the stack
+	{opcode = 0x04, operand = 3 }, -- push L3
+	{opcode = 0x02, operand = 1 }, -- push K1
 	{opcode = 0x0F					 }, -- pop 2 from the stack, push equality comparison onto the stack
 	{opcode = 0x0E, operand = 11}, -- branch to instruction 11 if local3 and constant1 are not equal
-	{opcode = 0x02, operand = 2 }, -- push K2 onto the stack
+	{opcode = 0x02, operand = 2 }, -- push K2
 	{opcode = 0x08, operand = 3 }, -- store K2 into L3
-	{opcode = 0x04, operand = 3 }, -- push L3 onto the stack
+	{opcode = 0x01, operand = 3 }, -- push G3
+	{opcode = 0x04, operand = 3 }, -- push L3
+	{opcode = 0x09, operand = 1 }, -- call
 	{opcode = 0x0A					 }
+})
+
+vm:addFunction(1, 0, {2}, {
+	{opcode = 0x04, operand = 1},
+	{opcode = 0x04, operand = 1},
+	{opcode = 0x18					}, -- square L1
+	{opcode = 0x04, operand = 1},
+	{opcode = 0x02, operand = 1},
+	{opcode = 0x19					}, -- halve L1
+	{opcode = 0x17					}, -- subtract half of L1 from L1 squared
+	{opcode = 0x0A					}
 })
 
 --vm:dump()
