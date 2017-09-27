@@ -163,8 +163,22 @@ local vm = {
 			self.ip = self.ip + 1
 			table.remove(self.stack)
 		
-		elseif (false) then
-			-- TODO: JMP
+		elseif (opcode == opcodes.BR) then
+			self.ip = func.bytecode[op]
+		
+		elseif (opcode == opcodes.BRT) then
+			if (self.stack[#self.stack] == true) then
+				self.ip = func.bytecode[op]
+			else
+				self.ip = self.ip + 1
+			end
+		
+		elseif (opcode == opcodes.BRF) then
+			if (self.stack[#self.stack] == false) then
+				self.ip = func.bytecode[op]
+			else
+				self.ip = self.ip + 1
+			end
 		
 		elseif (false) then
 			-- TODO: ADDU
