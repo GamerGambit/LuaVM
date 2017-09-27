@@ -18,7 +18,7 @@ RET      # return value at top of stack
 
 local vm = require("vm")
 
-vm:addFunction(0, {13, 37}, {
+vm:addFunction(0, 0, {13, 37}, {
 	{opcode = 0x01, operand = 2 },
 	{opcode = 0x02, operand = 1},
 	{opcode = 0x02, operand = 2},
@@ -28,7 +28,7 @@ vm:addFunction(0, {13, 37}, {
 	{opcode = 0x0A					 }
 })
 
-vm:addFunction(2, {}, {
+vm:addFunction(2, 0, {}, {
 	{opcode = 0x04, operand = 1},
 	{opcode = 0x04, operand = 2},
 	{opcode = 0x14					},
