@@ -65,11 +65,11 @@ local lexer = {
 			if (self.currentChar == '\n') then
 				self.currentRow = self.currentRow + 1
 				self.currentColumn = 1
-				next()
+				self:next()
 
 			elseif (self.currentChar == '\t' or self.currentChar == ' ') then
 				self.currentColumn = self.currentColumn + 1
-				next()
+				self:next()
 			end
 		end
 
