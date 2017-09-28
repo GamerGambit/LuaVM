@@ -55,7 +55,7 @@ local lexer = {
 		self.string = str
 		self.currentChar = self.string[1]
 
-		while(self.currentChar) do
+		while (self.currentChar) do
 			-- NOP
 			break
 		end
