@@ -21,8 +21,8 @@ local vm = require("vm")
 
 table.insert(vm.globals, newFunction(1, 0, {}, {newNumber(13), newNumber(37)}, {
 	{opcode = 0x01, operand = 2 },
-	{opcode = 0x02, operand = 1},
-	{opcode = 0x02, operand = 2},
+	{opcode = 0x02, operand = 1 },
+	{opcode = 0x02, operand = 2 },
 	{opcode = 0x08, operand = 2 },
 	--{opcode = 0x0B					 }, -- pop result
 	--{opcode = 0x05					 }, -- push null
