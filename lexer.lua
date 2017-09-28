@@ -130,6 +130,72 @@ local lexer = {
 				else
 					table.insert(self.tokens, newToken('^', TokenType.OPERATOR))
 				end
+
+			elseif (self.currentChar == '&') then
+				self:next()
+
+				if (self.currentChar == '&' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken('&' .. self.currentChar, TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('&', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '|') then
+				self:next()
+
+				if (self.currentChar == '|' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken('|' .. self.currentChar, TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('|', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '~') then
+				self:next()
+				table.insert(self.tokens, newToken('~', TokenType.OPERATOR))
+
+			elseif (self.currentChar == '<') then
+				self:next()
+
+				if (self.currentChar == '<' or self.currentChar == '=') then
+					if (self.currentChar == '<') then
+						self:next()
+
+						if (self.currentChar == '=') then
+							self:next()
+							table.insert(self.tokens, newToken("<<=", TokenType.OPERATOR))
+						else
+							table.insert(self.tokens, newToken("<<", TokenType.OPERATOR))
+						end
+					else
+						table.insert(self.tokens, newToken("<=", TokenType.OPERATOR))
+						self:next()
+					end
+				else
+					table.insert(self.tokens, newToken('<', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '>') then
+				self:next()
+
+				if (self.currentChar == '>' or self.currentChar == '=') then
+					if (self.currentChar == '>') then
+						self:next()
+
+						if (self.currentChar == '=') then
+							self:next()
+							table.insert(self.tokens, newToken(">>=", TokenType.OPERATOR))
+						else
+							table.insert(self.tokens, newToken(">>", TokenType.OPERATOR))
+						end
+					else
+						table.insert(self.tokens, newToken(">=", TokenType.OPERATOR))
+						self:next()
+					end
+				else
+					table.insert(self.tokens, newToken('>', TokenType.OPERATOR))
+				end
 			end
 		end
 
