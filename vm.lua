@@ -89,7 +89,7 @@ local vm = {
 
 	tick = function(self)
 		if (#self.call_stack == 0) then return end
-		
+
 		local sf = self.call_stack[self.sfp]
 		local func = self.globals[sf.func_addr]
 		local instruction = func.bytecode[self.ip]
@@ -143,7 +143,7 @@ local vm = {
 			end
 
 			table.remove(self.stack) -- pop function
-			
+
 			self.sfp = self.sfp + 1
 			self.ip = 1
 

@@ -69,10 +69,6 @@ function newNumber(n)
 			assert(other.type == "number", string.format("Cannot bitwise negate %s and number", other.type))
 			return bit.bnot(self.value, other.value)
 		end,
-		bneg = function(self, other)
-			assert(other.type == "number", string.format("Cannot bitwise negate %s and number", other.type))
-			return bit.bnot(self.value, other.value)
-		end,
 		bshl = function(self, other)
 			assert(other.type == "number", string.format("Cannot bitwise left shift %s and number", other.type))
 			return bit.lshift(self.value, other.value)
