@@ -3,7 +3,8 @@ TokenType = {
 	IDENTIFIER	= 0x1,
 	KEYWORD		= 0x2,
 	OPERATOR		= 0x3,
-	CONSTANT		= 0x4 -- string, number
+	LITERAL_N	= 0x4,
+	LITERAL_S	= 0x5
 }
 
 Keywords = {
@@ -31,8 +32,26 @@ local lexer = {
 		-- NOP
 	end,
 
-	readString = function(self)
-		-- NOP
+	readString = function(self, terminatingChar)
+		local startRow = self.currentRow
+		local startCol = self.currentColumn
+
+		self:next() -- skip opening
+
+		local str = ""
+
+		while (self.currentIndex < #self.string and self.currentChar ~= terminatingChar) do
+			str = str .. self.currentChar
+			self:next()
+		end
+
+		if (self.currentIndex == #self.string) then
+			self:error("Unfinished string", startRow, startCol)
+		end
+
+		self:next() -- it was a finished string, skip over the closer
+
+		table.insert(self.tokens, newToken(TokenType.LITERAL_S, str))
 	end,
 
 	readIdentifier = function(self)
@@ -53,8 +72,8 @@ local lexer = {
 		self.currentColumn = self.currentColumn + 1
 	end,
 
-	error = function(self, msg)
-		error(string.format("[Lexer:%d:%d] %s", self.currentRow, self.currentColumn, msg))
+	error = function(self, msg, row, col)
+		error(string.format("[Lexer:%d:%d] %s", row or self.currentRow, col or self.currentColumn, msg))
 	end,
 
 	lex = function(self, str)
@@ -244,6 +263,9 @@ local lexer = {
 					  self.currentChar == '@') then
 				table.insert(self.tokens, newToken(TokenType.OPERATOR, self.currentChar))
 				self:next()
+
+			elseif (self.currentChar == '"' or self.currentChar == '\'') then
+				self:readString(self.currentChar)
 			end
 		end
 
