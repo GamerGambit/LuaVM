@@ -20,7 +20,7 @@ end
 
 local lexer = {
 	string = "",
-	currentIndex = 1,
+	currentIndex = 0,
 	currentChar = '\0',
 	currentRow = 1,
 	currentColumn = 1,
@@ -40,7 +40,13 @@ local lexer = {
 	end,
 
 	next = function(self)
-		-- NOP
+		if (self.currentIndex >= #self.string) then
+			error("Source underflow")
+		end
+
+		self.currentIndex = self.currentIndex + 1
+		self.currentChar = self.string[currentIndex]
+		self.currentColumn = self.currentColumn + 1
 	end,
 
 	error = function(self, msg)
@@ -52,13 +58,15 @@ local lexer = {
 			self:error("Input must be a string containing at least 1 character")
 		end
 
-		self.string = str
-		self.currentChar = self.string[1]
+			self.string = str
+			self:next()
 
 		while (self.currentChar) do
 			-- NOP
 			break
 		end
+
+		return self.tokens
 	end
 }
 
