@@ -40,12 +40,12 @@ local lexer = {
 
 		local str = ""
 
-		while (self.currentIndex < #self.string and self.currentChar ~= terminatingChar) do
+		while (self.currentChar ~= '\0' and self.currentChar ~= terminatingChar) do
 			str = str .. self.currentChar
 			self:next()
 		end
 
-		if (self.currentIndex == #self.string) then
+		if (self.currentChar == '\0') then
 			self:error("Unfinished string", startRow, startCol)
 		end
 
@@ -60,10 +60,10 @@ local lexer = {
 
 	next = function(self)
 		-- we have the last char already, set the current char to null
-		if (self.currentIndex == #self.string) then
+		if (self.currentIndex + 1 == #self.string + 1) then
 			self.currentChar = '\0'
 			return
-		elseif (self.currentIndex > #self.string) then
+		elseif (self.currentIndex > #self.string + 1) then
 			error("Source underflow")
 		end
 
