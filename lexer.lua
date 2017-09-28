@@ -91,7 +91,6 @@ local lexer = {
 				self:next()
 
 			elseif (self.currentChar == '\t' or self.currentChar == ' ') then
-				self.currentColumn = self.currentColumn + 1
 				self:next()
 
 			elseif (self.currentChar == '+') then
