@@ -217,6 +217,16 @@ local lexer = {
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '>'))
 				end
+
+			elseif (self.currentChar == '=') then
+				self:next()
+
+				if (self.currentChar == '=') then
+					self:next()
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, "=="))
+				else
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, '='))
+				end
 			end
 		end
 
