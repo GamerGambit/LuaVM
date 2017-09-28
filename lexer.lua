@@ -40,12 +40,16 @@ local lexer = {
 	end,
 
 	next = function(self)
-		if (self.currentIndex >= #self.string) then
+		-- we have the last char already, set the current char to null
+		if (self.currentIndex == #self.string) then
+			self.currentChar = '\0'
+			return
+		elseif (self.currentIndex > #self.string) then
 			error("Source underflow")
 		end
 
 		self.currentIndex = self.currentIndex + 1
-		self.currentChar = self.string[currentIndex]
+		self.currentChar = string.sub(self.string, self.currentIndex, self.currentIndex)
 		self.currentColumn = self.currentColumn + 1
 	end,
 
@@ -61,7 +65,7 @@ local lexer = {
 			self.string = str
 			self:next()
 
-		while (self.currentChar) do
+		while (self.currentChar ~= '\0') do
 			if (self.currentChar == '\n') then
 				self.currentRow = self.currentRow + 1
 				self.currentColumn = 1
