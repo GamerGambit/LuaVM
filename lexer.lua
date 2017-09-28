@@ -125,8 +125,19 @@ local lexer = {
 				self:next()
 
 				if (self.currentChar == '^' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken('^' .. self.currentChar, TokenType.OPERATOR))
-					self:next()
+					if (self.currentChar == '^') then
+						self:next()
+
+						if (self.currentChar == '=') then
+							self:next()
+							table.insert(self.tokens, newToken("^^=", TokenType.OPERATOR))
+						else
+							table.insert(self.tokens, newToken("^^", TokenType.OPERATOR))
+						end
+					else
+						self:next()
+						table.insert(self.tokens, newToken("^=", TokenType.OPERATOR))
+					end
 				else
 					table.insert(self.tokens, newToken('^', TokenType.OPERATOR))
 				end
