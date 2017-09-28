@@ -70,6 +70,66 @@ local lexer = {
 			elseif (self.currentChar == '\t' or self.currentChar == ' ') then
 				self.currentColumn = self.currentColumn + 1
 				self:next()
+
+			elseif (self.currentChar == '+') then
+				self:next()
+
+				if (self.currentChar == '+' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken("+" .. self.currentChar, TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('+', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '-') then
+					self:next()
+
+					if (self.currentChar == '-' or self.currentChar == '=') then
+						table.insert(self.tokens, newToken("-" .. self.currentChar, TokenType.OPERATOR))
+						self:next()
+					else
+					table.insert(self.tokens, newToken('-', TokenType.OPERATOR))
+					end
+
+			elseif (self.currentChar == '*') then
+				self:next()
+
+				if (self.currentChar == '*' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken('*' .. self.currentChar, TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('*', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '/') then
+				self:next()
+
+				if (self.currentChar == '/' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken('*' .. self.currentChar, TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('/', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '%') then
+				self:next()
+
+				if (self.currentChar == '=') then
+					table.insert(self.tokens, newToken("%=", TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('%', TokenType.OPERATOR))
+				end
+
+			elseif (self.currentChar == '^') then
+				self:next()
+
+				if (self.currentChar == '^' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken('^' .. self.currentChar, TokenType.OPERATOR))
+					self:next()
+				else
+					table.insert(self.tokens, newToken('^', TokenType.OPERATOR))
+				end
 			end
 		end
 
