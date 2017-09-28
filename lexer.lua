@@ -62,8 +62,15 @@ local lexer = {
 			self:next()
 
 		while (self.currentChar) do
-			-- NOP
-			break
+			if (self.currentChar == '\n') then
+				self.currentRow = self.currentRow + 1
+				self.currentColumn = 1
+				next()
+
+			elseif (self.currentChar == '\t' or self.currentChar == ' ') then
+				self.currentColumn = self.currentColumn + 1
+				next()
+			end
 		end
 
 		return self.tokens
