@@ -41,7 +41,9 @@ local parser = {
 	end,
 
 	parse = function(self, source)
+		self.tree = {}
 		self.tokens = lexer:lex(source)
+		self.tokenIndex = 0
 		self:next()
 
 		self:parseStatement()
