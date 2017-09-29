@@ -8,24 +8,29 @@ local parser = {
 	currentToken = nil,
 
 	expect = function(self, type, contents)
+		if (self.currentToken == nil) then error("[Parser] Unexpected end of file") end
+
 		if (self.currentToken.type ~= type and (contents ~= nil and self.currentToken.contents == contents or true)) then
-			local typeName = "[Invalid Type]"
+			local expectedTypeName = "[Invalid Type]"
+			local gotTypeName = "[Invalid Type]"
 			for k,v in pairs(TokenType) do
-				if (v == type) then
-					typeName = k
-					break
-				end
+				if (v == type) then expectedTypeName = k end
+				if (v == self.currentToken.type) then gotTypeName = k end
 			end
 
-			error("[Parser] expected %s:%s, got %s:%s", typeName, contents, self.currentToken.type, self.currentToken.contents)
+			error(string.format("[Parser] expected %s:%s, got %s:%s", expectedTypeName, contents, gotTypeName, self.currentToken.contents))
 		end
 
-		return self.currentToken.contents
+		local currentContents = self.currentToken.contents
+
+		self:next()
+
+		return currentContents
 	end,
 
 	next = function(self)
 		if (self.tokenIndex + 1 == #self.tokens + 1) then
-			currentToken = nil
+			self.currentToken = nil
 			return
 		elseif (self.tokenIndex > #self.tokens + 1) then
 			error("Parser token underflow")
