@@ -22,7 +22,7 @@ local vm = {
 
 	dump = function(self)
 		print()
-		print("======== DUMP ========")
+		print("======== VM DUMP ========")
 		print("Globals:")
 		for k, v in ipairs(self.globals) do
 			print(string.format("       > %s\t%s\t%s", k, v.type, v:tostring()))
@@ -83,7 +83,7 @@ local vm = {
 
 		print("Stack Frame Pointer: " .. tostring(self.sfp))
 		print("Instruction Pointer: " .. tostring(self.ip))
-		print("======== DUMP ========")
+		print("=========================")
 		print()
 	end,
 
