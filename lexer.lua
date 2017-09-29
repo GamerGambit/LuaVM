@@ -7,7 +7,7 @@ TokenType = {
 	LITERAL_S	= 0x5
 }
 
-Keywords = {
+local keywords = {
 	"function",
 	"if"
 }
@@ -160,7 +160,23 @@ local lexer = {
 	end,
 
 	readIdentifier = function(self)
-		-- NOP
+		local str = ""
+
+		repeat
+			str = str .. self.currentChar
+			self:next()
+		until (self.currentChar == '\0' or not isAlpha(self.currentChar) and
+				 self.currentChar ~= '_' and not isDigit(self.currentChar))
+
+		local isKeyword = false
+		for k,v in ipairs(keywords) do
+			if (v == str) then
+				isKeyword = true
+				break
+			end
+		end
+
+		table.insert(self.tokens, newToken(isKeyword and TokenType.KEYWORD or TokenType.IDENTIFIER, str))
 	end,
 
 	next = function(self)
@@ -376,6 +392,8 @@ local lexer = {
 				self:readString(self.currentChar)
 			elseif (isDigit(self.currentChar)) then
 				self:readNumber()
+			elseif (isAlpha(self.currentChar) or self.currentChar == '_') then
+				self:readIdentifier()
 			end
 		end
 
