@@ -1,5 +1,13 @@
 local lexer = require("lexer")
 
+local function newFunction(name)
+	return {
+		type = "function",
+		name = name,
+		params = {}
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -50,10 +58,37 @@ local parser = {
 	end,
 
 	parseStatement = function(self)
-		-- NOP
+		if (self.currentToken.type == TokenType.KEYWORD) then
+			if (self.currentToken.contents == "function") then
+				self:next()
+				self:parseFunction()
+			end
+		end
 	end,
 
+	parseFunction = function(self)
+		table.insert(self.tree, newFunction(self:expect(TokenType.IDENTIFIER)))
+		local func = self.tree[#self.tree]
 
+		self:expect(TokenType.OPERATOR, '(')
+
+		while (not (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == ')')) do
+			if (#func.params >= 1) then
+				self:expect(TokenType.OPERATOR, ',')
+			end
+
+			table.insert(func.params, self:expect(TokenType.IDENTIFIER))
+		end
+
+		self:expect(TokenType.OPERATOR, ')')
+		self:expect(TokenType.OPERATOR, '{')
+
+		while (self.currentToken.type ~= TokenType.OPERATOR and self.currentToken.contents ~= '}') do
+			self:parseStatement()
+		end
+
+		self:expect(TokenType.OPERATOR, '}')
+	end
 }
 
 return setmetatable({}, {__index = parser})
