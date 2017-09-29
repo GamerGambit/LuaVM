@@ -12,11 +12,34 @@ Keywords = {
 	"if"
 }
 
+local numberType = {
+	BINARY		= 2,
+	DECIMAL		= 10,
+	HEXADECIMAL	= 16,
+	OCTAL			= 8,
+	SCIENTIFIC	= 0
+}
+
 local function newToken(type, contents)
 	return {
 		type = type,
 		contents = contents
 	}
+end
+
+local function isDigit(char)
+	local byte = string.byte(char)
+	return byte >= 48 and byte <= 57
+end
+
+local function isHexDigit(char)
+	local byte = string.byte(char)
+	return isDigit(char) or (byte >= 65 and byte <= 70) or (byte >= 97 and byte <= 103)
+end
+
+local function isAlpha(char)
+	local byte = string.byte(char)
+	return (byte >= 65 and byte <= 90) or (byte >= 97 and byte <= 122)
 end
 
 local lexer = {
@@ -29,7 +52,89 @@ local lexer = {
 	tokens = {},
 
 	readNumber = function(self)
-		-- NOP
+		local startRow = self.currentRow
+		local startCol = self.currentColumn
+		local numStr = ""
+		local numType = numberType.DECIMAL
+
+		if (self.currentChar == '0') then
+			self:next()
+
+			if (self.currentChar == 'x') then
+				self:next()
+				numType = numberType.HEXADECIMAL
+			elseif (self.currentChar == 'o') then
+				self:next()
+				numType = numberType.OCTAL
+			elseif (self.currentChar == 'b') then
+				self:next()
+				numType = numberType.BINARY
+			else
+				numStr = "0"
+			end
+
+			if (numType ~= numberType.DECIMAL and self.currentChar == '_') then
+				self:error("Invalid use of digit separator")
+			end
+		end
+
+		local lastWasUnderscore = false
+
+		while (self.currentChar ~= '\0' and (isDigit(self.currentChar) or isHexDigit(self.currentChar) or
+				self.currentChar == '+' or self.currentChar == '-' or self.currentChar == '.' or
+				self.currentChar == 'e' or self.currentChar == 'E' or self.currentChar == '_')) do
+			if (self.currentChar == '_') then
+				local lastNumChar = string.sub(numStr, #numStr, #numStr)
+				if (not isDigit(lastNumChar) and not isHexDigit(lastNumChar)) then
+					print(lastNumChar)
+					self:error("Invalid use of digit separator")
+				end
+
+				lastWasUnderscore = true
+			else
+				if (self.currentChar == 'e' or self.currentChar == 'E' or
+					 self.currentChar == '+' or self.currentChar == '-') then
+					if (lastWasUnderscore) then
+						self:error("Invalid use of digit separator")
+					end
+
+					numType = numberType.SCIENTIFIC
+				end
+
+				numStr = numStr .. self.currentChar
+				lastWasUnderscore = false
+			end
+
+			self:next()
+		end
+
+		if (lastWasUnderscore) then
+			self:error("Invalid use of digit separator")
+		end
+
+		local num
+		if (numType == numberType.SCIENTIFIC or numType == numberType.DECIMAL) then
+			num = tonumber(numStr)
+		else
+			num = tonumber(numStr, numType)
+		end
+
+		if (type(num) ~= "number") then
+			local numTypeStr = "decimal"
+			if (numType == numberType.BINARY) then
+				numTypeStr = "binary"
+			elseif (numType == numberType.HEXADECIMAL) then
+				numTypeStr = "hexadecimal"
+			elseif (numType == numberType.OCTAL) then
+				numTypeStr = "octal"
+			elseif (numType == numberType.SCIENTIFIC) then
+				numTypeStr = "scientific"
+			end
+
+			self:error(string.format("Invalid %s number type (%s)", numTypeStr, numStr), startRow, startCol)
+		end
+
+		table.insert(self.tokens, newToken(TokenType.LITERAL_N, num))
 	end,
 
 	readString = function(self, terminatingChar)
@@ -265,6 +370,8 @@ local lexer = {
 
 			elseif (self.currentChar == '"' or self.currentChar == '\'') then
 				self:readString(self.currentChar)
+			elseif (isDigit(self.currentChar)) then
+				self:readNumber()
 			end
 		end
 
