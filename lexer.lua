@@ -9,7 +9,9 @@ TokenType = {
 
 local keywords = {
 	"function",
-	"if"
+	"if",
+	"true",
+	"false"
 }
 
 local numberType = {
@@ -402,7 +404,8 @@ local lexer = {
 			elseif (self.currentChar == ',' or self.currentChar == '.' or self.currentChar == '(' or
 					  self.currentChar == ')' or self.currentChar == '{' or self.currentChar == '}' or
 					  self.currentChar == '[' or self.currentChar == ']' or self.currentChar == '#' or
-					  self.currentChar == '@') then
+					  self.currentChar == '@' or self.currentChar == ':' or self.currentChar == '?' or
+					  self.currentChar == ';') then
 				table.insert(self.tokens, newToken(TokenType.OPERATOR, self.currentChar))
 				self:next()
 
