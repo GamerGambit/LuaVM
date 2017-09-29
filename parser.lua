@@ -4,7 +4,8 @@ local function newFunctionDefinition(name)
 	return {
 		type = "function-definition",
 		name = name,
-		params = {}
+		params = {},
+		eval = {}
 	}
 end
 
@@ -107,10 +108,7 @@ local parser = {
 		self:expect(TokenType.OPERATOR, '{')
 
 		while (self.currentToken.type ~= TokenType.OPERATOR and self.currentToken.contents ~= '}') do
-			local stmtResult = self:parseStatement()
-			if (not stmtResult.success) then
-				return stmtResult
-			end
+			table.insert(func.eval, self:parseStatement().data)
 		end
 
 		self:expect(TokenType.OPERATOR, '}')
