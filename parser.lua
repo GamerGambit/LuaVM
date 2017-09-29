@@ -34,14 +34,14 @@ local parser = {
 				if (v == self.currentToken.type) then gotTypeName = k end
 			end
 
-			return {success = false, error = string.format("[Parser] expected %s, got %s:%s", msg and msg or expectedTypeName and (contents and ":" .. contents or ""), gotTypeName, self.currentToken.contents)}
+			return error(string.format("[Parser] expected %s, got %s:%s", msg and msg or expectedTypeName and (contents and ":" .. contents or ""), gotTypeName, self.currentToken.contents))
 		end
 
 		local currentContents = self.currentToken.contents
 
 		self:next()
 
-		return {success = true, data = currentContents}
+		return currentContents
 	end,
 
 	next = function(self)
@@ -91,49 +91,20 @@ local parser = {
 
 		self:next()
 
-		local nameRes = self:expect(TokenType.IDENTIFIER)
-		if (not nameRes.success) then
-			return nameRes
-		end
+		local func = newFunctionDefinition(self:expect(TokenType.IDENTIFIER))
 
-		local func = newFunctionDefinition(nameRes.data)
-
-		do
-			local result = self:expect(TokenType.OPERATOR, '(')
-			if (not result.success) then
-				return result
-			end
-		end
+		self:expect(TokenType.OPERATOR, '(')
 
 		while (not (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == ')')) do
 			if (#func.params >= 1) then
-				local result = self:expect(TokenType.OPERATOR, ',')
-				if (not result.success) then
-					return result
-				end
+				self:expect(TokenType.OPERATOR, ',')
 			end
 
-			local paramRes = self:parseFunctionParameter()
-			if (not paramRes.success) then
-				return paramRes
-			end
-
-			table.insert(func.params, paramRes.data)
+			table.insert(func.params, self:parseFunctionParameter().data)
 		end
 
-		do
-			local result = self:expect(TokenType.OPERATOR, ')')
-			if (not result.success) then
-				return result
-			end
-		end
-
-		do
-			local result = self:expect(TokenType.OPERATOR, '{')
-			if (not result.success) then
-				return result
-			end
-		end
+		self:expect(TokenType.OPERATOR, ')')
+		self:expect(TokenType.OPERATOR, '{')
 
 		while (self.currentToken.type ~= TokenType.OPERATOR and self.currentToken.contents ~= '}') do
 			local stmtResult = self:parseStatement()
@@ -142,12 +113,7 @@ local parser = {
 			end
 		end
 
-		do
-			local res = self:expect(TokenType.OPERATOR, '}')
-			if (not res.success) then
-				return res
-			end
-		end
+		self:expect(TokenType.OPERATOR, '}')
 
 		return {success = true, data = func}
 	end,
