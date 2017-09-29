@@ -26,14 +26,14 @@ local parser = {
 				if (v == self.currentToken.type) then gotTypeName = k end
 			end
 
-			error(string.format("[Parser] expected %s:%s, got %s:%s", expectedTypeName, contents, gotTypeName, self.currentToken.contents))
+			return {success = false, data = nil, error = string.format("[Parser] expected %s:%s, got %s:%s", expectedTypeName, contents, gotTypeName, self.currentToken.contents)}
 		end
 
 		local currentContents = self.currentToken.contents
 
 		self:next()
 
-		return currentContents
+		return {success = true, data = currentContents, error = nil}
 	end,
 
 	next = function(self)
@@ -54,40 +54,92 @@ local parser = {
 		self.tokenIndex = 0
 		self:next()
 
-		self:parseStatement()
+		while (self.currentToken ~= nil) do
+			local res = self:parseStatement()
+
+			if (not res.success) then
+				error(res.error)
+			else
+				table.insert(self.tree, res.data)
+			end
+		end
 	end,
 
 	parseStatement = function(self)
-		if (self.currentToken.type == TokenType.KEYWORD) then
-			if (self.currentToken.contents == "function") then
-				self:next()
-				self:parseFunction()
-			end
+		local funcResult = self:parseFunction()
+		if (not funcResult.success) then
+			return funcResult
 		end
+
+		return {success = true, data = funcResult.data}
 	end,
 
 	parseFunction = function(self)
-		table.insert(self.tree, newFunction(self:expect(TokenType.IDENTIFIER)))
-		local func = self.tree[#self.tree]
+		if (not (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "function")) then
+			return {success = false}
+		end
 
-		self:expect(TokenType.OPERATOR, '(')
+		self:next()
+
+		local nameRes = self:expect(TokenType.IDENTIFIER)
+		if (not nameRes.success) then
+			return nameRes
+		end
+
+		local func = newFunction(nameRes.data)
+
+		do
+			local result = self:expect(TokenType.OPERATOR, '(')
+			if (not result.success) then
+				return result
+			end
+		end
 
 		while (not (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == ')')) do
 			if (#func.params >= 1) then
-				self:expect(TokenType.OPERATOR, ',')
+				local result = self:expect(TokenType.OPERATOR, ',')
+				if (not result.success) then
+					return result
+				end
 			end
 
-			table.insert(func.params, self:expect(TokenType.IDENTIFIER))
+			local paramNameRes = self:expect(TokenType.IDENTIFIER)
+			if (not paramNameRes.success) then
+				return paramNameRes
+			end
+
+			table.insert(func.params, paramNameRes.data)
 		end
 
-		self:expect(TokenType.OPERATOR, ')')
-		self:expect(TokenType.OPERATOR, '{')
+		do
+			local result = self:expect(TokenType.OPERATOR, ')')
+			if (not result.success) then
+				return result
+			end
+		end
+
+		do
+			local result = self:expect(TokenType.OPERATOR, '{')
+			if (not result.success) then
+				return result
+			end
+		end
 
 		while (self.currentToken.type ~= TokenType.OPERATOR and self.currentToken.contents ~= '}') do
-			self:parseStatement()
+			local stmtResult = self:parseStatement()
+			if (not stmtResult.success) then
+				return stmtResult
+			end
 		end
 
-		self:expect(TokenType.OPERATOR, '}')
+		do
+			local res = self:expect(TokenType.OPERATOR, '}')
+			if (not res.success) then
+				return res
+			end
+		end
+
+		return {success = true, data = func, error = nil}
 	end
 }
 
