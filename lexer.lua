@@ -181,7 +181,7 @@ local lexer = {
 
 	dump = function(self)
 		print()
-		print("======== DUMP ========")
+		print("======== LEXER DUMP ========")
 		for i, t in ipairs(self.tokens) do
 			local tokenTypeName = "[Invalid Token]"
 			for name, value in pairs(TokenType) do
@@ -193,7 +193,7 @@ local lexer = {
 
 			print(string.format("%d\t%s\t%s", i, tokenTypeName, tostring(t.contents)))
 		end
-		print("======== DUMP ========")
+		print("============================")
 		print()
 	end,
 
