@@ -43,7 +43,7 @@ local function isAlpha(char)
 end
 
 local lexer = {
-	string = "",
+	source = "",
 	currentIndex = 0,
 	currentChar = '\0',
 	currentRow = 1,
@@ -199,15 +199,15 @@ local lexer = {
 
 	next = function(self)
 		-- we have the last char already, set the current char to null
-		if (self.currentIndex + 1 == #self.string + 1) then
+		if (self.currentIndex + 1 == #self.source + 1) then
 			self.currentChar = '\0'
 			return
-		elseif (self.currentIndex > #self.string + 1) then
+		elseif (self.currentIndex > #self.source + 1) then
 			error("Source underflow")
 		end
 
 		self.currentIndex = self.currentIndex + 1
-		self.currentChar = string.sub(self.string, self.currentIndex, self.currentIndex)
+		self.currentChar = string.sub(self.source, self.currentIndex, self.currentIndex)
 		self.currentColumn = self.currentColumn + 1
 	end,
 
@@ -215,12 +215,12 @@ local lexer = {
 		error(string.format("[Lexer:%d:%d] %s", row or self.currentRow, col or self.currentColumn, msg))
 	end,
 
-	lex = function(self, str)
-		if (type(str) ~= "string" or #str < 1) then
+	lex = function(self, source)
+		if (type(source) ~= "string" or #source < 1) then
 			self:error("Input must be a string containing at least 1 character")
 		end
 
-		self.string = str
+		self.source = source
 		self.currentIndex = 0
 		self.currentRow = 1
 		self.currentColumn = 1
