@@ -8,6 +8,14 @@ local function newFunctionDefinition(name)
 	}
 end
 
+local function newFunctionParameter(name, default)
+	return {
+		type = "function-parameter",
+		name = name,
+		default = default
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -15,7 +23,7 @@ local parser = {
 	tokenIndex = 0,
 	currentToken = nil,
 
-	expect = function(self, type, contents)
+	expect = function(self, type, contents, msg)
 		if (self.currentToken == nil) then error("[Parser] Unexpected end of file") end
 
 		if (self.currentToken.type ~= type and (contents ~= nil and self.currentToken.contents == contents or true)) then
@@ -26,7 +34,7 @@ local parser = {
 				if (v == self.currentToken.type) then gotTypeName = k end
 			end
 
-			return {success = false, error = string.format("[Parser] expected %s:%s, got %s:%s", expectedTypeName, contents, gotTypeName, self.currentToken.contents)}
+			return {success = false, error = string.format("[Parser] expected %s, got %s:%s", msg and msg or expectedTypeName and (contents and ":" .. contents or ""), gotTypeName, self.currentToken.contents)}
 		end
 
 		local currentContents = self.currentToken.contents
@@ -105,12 +113,12 @@ local parser = {
 				end
 			end
 
-			local paramNameRes = self:expect(TokenType.IDENTIFIER)
-			if (not paramNameRes.success) then
-				return paramNameRes
+			local paramRes = self:parseFunctionParameter()
+			if (not paramRes.success) then
+				return paramRes
 			end
 
-			table.insert(func.params, paramNameRes.data)
+			table.insert(func.params, paramRes.data)
 		end
 
 		do
@@ -142,6 +150,26 @@ local parser = {
 		end
 
 		return {success = true, data = func}
+	end,
+
+	parseFunctionParameter = function(self)
+		if (self.currentToken.type ~= TokenType.IDENTIFIER) then
+			return {success = false}
+		end
+
+		local funcParam = newFunctionParameter(self.currentToken.contents)
+
+		self:next()
+
+--[[
+		-- TODO add parameter defaults when expression parsing is done
+		if (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == '=') then
+			self:next()
+			funcParam.default = self:parseExpression()
+		end
+]]
+
+		return {success = true, data = funcParam}
 	end
 }
 
