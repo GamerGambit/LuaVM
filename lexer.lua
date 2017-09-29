@@ -179,6 +179,24 @@ local lexer = {
 		table.insert(self.tokens, newToken(isKeyword and TokenType.KEYWORD or TokenType.IDENTIFIER, str))
 	end,
 
+	dump = function(self)
+		print()
+		print("======== DUMP ========")
+		for i, t in ipairs(self.tokens) do
+			local tokenTypeName = "[Invalid Token]"
+			for name, value in pairs(TokenType) do
+				if (value == t.type) then
+					tokenTypeName = name
+					break
+				end
+			end
+
+			print(string.format("%d\t%s\t%s", i, tokenTypeName, tostring(t.contents)))
+		end
+		print("======== DUMP ========")
+		print()
+	end,
+
 	next = function(self)
 		-- we have the last char already, set the current char to null
 		if (self.currentIndex + 1 == #self.string + 1) then
