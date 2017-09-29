@@ -186,8 +186,12 @@ local lexer = {
 			self:error("Input must be a string containing at least 1 character")
 		end
 
-			self.string = str
-			self:next()
+		self.string = str
+		self.currentIndex = 0
+		self.currentRow = 1
+		self.currentColumn = 1
+		self.tokens = {}
+		self:next()
 
 		while (self.currentChar ~= '\0') do
 			if (self.currentChar == '\n') then
