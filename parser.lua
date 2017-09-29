@@ -1,8 +1,8 @@
 local lexer = require("lexer")
 
-local function newFunction(name)
+local function newFunctionDefinition(name)
 	return {
-		type = "function",
+		type = "function-definition",
 		name = name,
 		params = {}
 	}
@@ -26,14 +26,14 @@ local parser = {
 				if (v == self.currentToken.type) then gotTypeName = k end
 			end
 
-			return {success = false, data = nil, error = string.format("[Parser] expected %s:%s, got %s:%s", expectedTypeName, contents, gotTypeName, self.currentToken.contents)}
+			return {success = false, error = string.format("[Parser] expected %s:%s, got %s:%s", expectedTypeName, contents, gotTypeName, self.currentToken.contents)}
 		end
 
 		local currentContents = self.currentToken.contents
 
 		self:next()
 
-		return {success = true, data = currentContents, error = nil}
+		return {success = true, data = currentContents}
 	end,
 
 	next = function(self)
@@ -66,15 +66,17 @@ local parser = {
 	end,
 
 	parseStatement = function(self)
-		local funcResult = self:parseFunction()
-		if (not funcResult.success) then
+		local funcResult = self:parseFunctionDefinition()
+		if (funcResult.success) then
+			 return {success = true, data = funcResult.data}
+		elseif (funcResult.error) then
 			return funcResult
 		end
 
-		return {success = true, data = funcResult.data}
+		return {success = false}
 	end,
 
-	parseFunction = function(self)
+	parseFunctionDefinition = function(self)
 		if (not (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "function")) then
 			return {success = false}
 		end
@@ -86,7 +88,7 @@ local parser = {
 			return nameRes
 		end
 
-		local func = newFunction(nameRes.data)
+		local func = newFunctionDefinition(nameRes.data)
 
 		do
 			local result = self:expect(TokenType.OPERATOR, '(')
@@ -139,7 +141,7 @@ local parser = {
 			end
 		end
 
-		return {success = true, data = func, error = nil}
+		return {success = true, data = func}
 	end
 }
 
