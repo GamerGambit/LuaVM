@@ -419,6 +419,8 @@ local lexer = {
 				self:readNumber()
 			elseif (isAlpha(self.currentChar) or self.currentChar == '_') then
 				self:readIdentifier()
+			else
+				self:error("Invalid token")
 			end
 		end
 
