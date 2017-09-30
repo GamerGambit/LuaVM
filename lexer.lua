@@ -53,6 +53,36 @@ local lexer = {
 
 	tokens = {},
 
+	readLineComment = function(self)
+		while (not self:eof() and self.currentChar ~= '\0') do
+			self:next()
+		end
+	end,
+
+	readBlockComment = function(self)
+		while (not self:eof()) do
+			if (self.currentChar == '*') then
+				self:next()
+
+				if (self.currentChar == '/') then
+					break
+				end
+			elseif (self.currentChar == '\n') then
+				self:next()
+				self.currentRow = self.currentRow + 1
+				self.currentColumn = 0
+			else
+				self:next()
+			end
+		end
+
+		if (self:eof()) then
+			self:error("Unfinished comment")
+		else
+			self:next()
+		end
+	end,
+
 	readNumber = function(self)
 		local startRow = self.currentRow
 		local startCol = self.currentColumn
@@ -275,7 +305,13 @@ local lexer = {
 			elseif (self.currentChar == '/') then
 				self:next()
 
-				if (self.currentChar == '/' or self.currentChar == '=') then
+				if (self.currentChar == '/') then
+					self:next()
+					self:readLineComment()
+				elseif (self.currentChar == '*') then
+					self:next()
+					self:readBlockComment()
+				elseif (self.currentChar == '=') then
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '/' .. self.currentChar))
 					self:next()
 				else
