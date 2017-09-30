@@ -253,14 +253,14 @@ local lexer = {
 				end
 
 			elseif (self.currentChar == '-') then
-					self:next()
+				self:next()
 
-					if (self.currentChar == '-' or self.currentChar == '=') then
-						table.insert(self.tokens, newToken(TokenType.OPERATOR, '-' .. self.currentChar))
-						self:next()
-					else
+				if (self.currentChar == '-' or self.currentChar == '=') then
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, '-' .. self.currentChar))
+					self:next()
+				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '-'))
-					end
+				end
 
 			elseif (self.currentChar == '*') then
 				self:next()
@@ -276,7 +276,7 @@ local lexer = {
 				self:next()
 
 				if (self.currentChar == '/' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '*' .. self.currentChar))
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, '/' .. self.currentChar))
 					self:next()
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '/'))
