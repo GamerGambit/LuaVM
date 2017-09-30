@@ -24,8 +24,13 @@ local parser = {
 	tokenIndex = 0,
 	currentToken = nil,
 
+	-- end of stream
+	eos = function(self)
+		return self.currentToken == nil
+	end,
+
 	expect = function(self, type, contents, msg)
-		if (self.currentToken == nil) then error("[Parser] Unexpected end of file") end
+		if (self:eos()) then error("[Parser] Unexpected end of file") end
 
 		if (self.currentToken.type ~= type and (contents ~= nil and self.currentToken.contents == contents or true)) then
 			local expectedTypeName = "[Invalid Type]"
@@ -63,7 +68,7 @@ local parser = {
 		self.tokenIndex = 0
 		self:next()
 
-		while (self.currentToken ~= nil) do
+		while (not self:eos()) do
 			local res = self:parseStatement()
 
 			if (not res.success) then
