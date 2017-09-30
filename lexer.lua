@@ -82,7 +82,7 @@ local lexer = {
 
 		local lastWasUnderscore = false
 
-		while (self.currentChar ~= '\0' and (isDigit(self.currentChar) or isHexDigit(self.currentChar) or
+		while (not self:eof() and (isDigit(self.currentChar) or isHexDigit(self.currentChar) or
 				self.currentChar == '+' or self.currentChar == '-' or self.currentChar == '.' or
 				self.currentChar == 'e' or self.currentChar == 'E' or self.currentChar == '_')) do
 			if (self.currentChar == '_') then
@@ -147,12 +147,12 @@ local lexer = {
 
 		local str = ""
 
-		while (self.currentChar ~= '\0' and self.currentChar ~= terminatingChar) do
+		while (not self:eof() and self.currentChar ~= terminatingChar) do
 			str = str .. self.currentChar
 			self:next()
 		end
 
-		if (self.currentChar == '\0') then
+		if (self:eof()) then
 			self:error("Unfinished string", startRow, startCol)
 		end
 
@@ -167,7 +167,7 @@ local lexer = {
 		repeat
 			str = str .. self.currentChar
 			self:next()
-		until (self.currentChar == '\0' or not isAlpha(self.currentChar) and
+		until (self:eof() or not isAlpha(self.currentChar) and
 				 self.currentChar ~= '_' and not isDigit(self.currentChar))
 
 		local isKeyword = false
@@ -217,6 +217,10 @@ local lexer = {
 		error(string.format("[Lexer:%d:%d] %s", row or self.currentRow, col or self.currentColumn, msg))
 	end,
 
+	eof = function(self)
+		return self.currentChar == '\0'
+	end,
+
 	lex = function(self, source)
 		if (type(source) ~= "string" or #source < 1) then
 			self:error("Input must be a string containing at least 1 character")
@@ -229,7 +233,7 @@ local lexer = {
 		self.tokens = {}
 		self:next()
 
-		while (self.currentChar ~= '\0') do
+		while (not self:eof()) do
 			if (self.currentChar == '\n') then
 				self.currentRow = self.currentRow + 1
 				self.currentColumn = 1
