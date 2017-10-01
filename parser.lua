@@ -1,6 +1,8 @@
 local lexer = require("lexer")
 
 local LOWEST_PRECEDENCE = 16
+local ASSOCIATIVITY_LEFT = 0
+local ASSOCIATIVITY_RIGHT = 0
 local CLOSE_PAREN_IGNORE = 0
 local CLOSE_PAREN_TERMINATE = 1
 
@@ -32,6 +34,36 @@ local function newIdentifier(identifier)
 	return {
 		type = "identifier",
 		identifier = identifier
+	}
+end
+
+local function newUnaryPostfix(symbol, operand)
+	return {
+		type = "unary-postfix",
+		symbol = symbol,
+		operand = operand
+	}
+end
+
+local function newArray()
+	return{
+		type = "array-definition"
+	}
+end
+
+local function newSubScript(operand, expr)
+	return {
+		type = "subscript",
+		operand = operand,
+		expr = expr
+	}
+end
+
+local function newDot(left, right)
+	return {
+		type = "dot",
+		left = left,
+		right = right
 	}
 end
 
@@ -169,6 +201,7 @@ local parser = {
 		precedence = precedence or 0
 
 		local expr
+		local exprPrecedence
 
 		-- keyword
 		if (self.currentToken.type == TokenType.KEYWORD) then
@@ -193,9 +226,34 @@ local parser = {
 				elseif (self.currentToken.contents == ')') then
 					if (closeParenTreatment == CLOSE_PAREN_TERMINATE) then
 						self:next()
-						return {success = true, data = prevExpr}
+						return {success = true, data = prevExpr, precedence = 0}
 					elseif (closeParenTreatment == CLOSE_PAREN_IGNORE) then
 						return {success = false}
+					end
+				end
+
+				if (precedence < 1) then
+					if (self.currentToken.contents == "++" or self.currentToken == "--") then
+						if (prevExpr == nil) then
+							error("[Parser] Expected expression")
+						else
+							expr = newUnaryPostFix(self.currentToken.contents, prevExpr)
+							exprPrecedence = 1
+						end
+
+						self:next()
+					elseif (self.currentToken.contents == '[') then
+						self:next()
+						local res = self:parseExpression(0, prevExpr, closeParenTreatment)
+						if (not res.success) then
+							expr = newArray()
+							return {success = true, data = newArray(), precedence = LOWEST_PRECEDENCE}
+						else
+							expr = newSubScript(prevExpr, res.data)
+							exprPrecedence = LOWEST_PRECEDENCE
+						end
+
+						self:expect(TokenType.OPERATOR, ']')
 					end
 				else
 					return {success = false}
@@ -204,16 +262,19 @@ local parser = {
 		-- identifier
 		elseif (self.currentToken.type == TokenType.IDENTIFIER) then
 			expr = newIdentifier(self.currentToken.contents)
+			exprPrecedence = 0
 			self:next()
 
 		-- literal_n
 		elseif (self.currentToken.type == TokenType.LITERAL_N) then
 			expr = newLiteral("number", self.currentToken.contents)
+			exprPrecedence = 0
 			self:next()
 
 		-- literal_s
 		elseif (self.currentToken.type == TokenType_LITERAL_S) then
 			expr = newLiteral("string", self.currentToken.contents)
+			exprPrecedence = 0
 			self:next()
 
 		-- token is assumed to be an operator
@@ -224,10 +285,14 @@ local parser = {
 			return {success = false}
 		end
 
+		local associativity = ASSOCIATIVITY_LEFT
+		if (exprPrecedence == 2 or exprPrecedence == 3 or exprPrecedence == 15) then
+			associativity = ASSOCIATIVITY_RIGHT
+		end
+
 		local nextExpr = {success = true, data = expr, precedence = exprPrecedence}
 		repeat
-			-- TODO associativity
-			local res = self:parseExpression(0, nextExpr.data, closeParenTreatment)
+			local res = self:parseExpression((associativity == ASSOCIATIVITY_LEFT) and nextExpr.precedence or nextExpr.precedence - 1, nextExpr.data, closeParenTreatment)
 			if (not res.success) then
 				break
 			else
