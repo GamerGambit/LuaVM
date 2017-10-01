@@ -1,10 +1,10 @@
 TokenType = {
-	INVALID 		= 0x0,
-	IDENTIFIER	= 0x1,
-	KEYWORD		= 0x2,
-	OPERATOR		= 0x3,
-	LITERAL_N	= 0x4,
-	LITERAL_S	= 0x5
+	IDENTIFIER	= 0x0,
+	KEYWORD		= 0x1,
+	OPERATOR		= 0x2,
+	LITERAL_N	= 0x3,
+	LITERAL_S	= 0x4,
+	COMMA			= 0x5
 }
 
 local keywords = {
@@ -441,7 +441,11 @@ local lexer = {
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '!'))
 				end
 
-			elseif (self.currentChar == ',' or self.currentChar == '.' or self.currentChar == '(' or
+			elseif (self.currentChar == ',') then
+				self:next()
+				table.insert(self.tokens, newToken(TokenType.COMMA))
+
+			elseif (self.currentChar == '.' or self.currentChar == '(' or
 					  self.currentChar == ')' or self.currentChar == '{' or self.currentChar == '}' or
 					  self.currentChar == '[' or self.currentChar == ']' or self.currentChar == '#' or
 					  self.currentChar == '@' or self.currentChar == ':' or self.currentChar == '?' or
