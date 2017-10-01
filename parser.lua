@@ -1,5 +1,9 @@
 local lexer = require("lexer")
 
+local LOWEST_PRECEDENCE = 16
+local CLOSE_PAREN_IGNORE = 0
+local CLOSE_PAREN_TERMINATE = 1
+
 local function newFunctionDefinition(name)
 	return {
 		type = "function-definition",
@@ -14,6 +18,20 @@ local function newFunctionParameter(name, default)
 		type = "function-parameter",
 		name = name,
 		default = default
+	}
+end
+
+local function newLiteral(type, value)
+	return {
+		type = "literal-" .. type,
+		value = value
+	}
+end
+
+local function newIdentifier(identifier)
+	return {
+		type = "identifier",
+		identifier = identifier
 	}
 end
 
@@ -130,15 +148,94 @@ local parser = {
 
 		self:next()
 
---[[
-		-- TODO add parameter defaults when expression parsing is done
 		if (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == '=') then
 			self:next()
-			funcParam.default = self:parseExpression()
+			local exprRes = self:parseExpression(LOWEST_PRECEDENCE, nil, CLOSE_PAREN_IGNORE)
+			if (not exprRes.success) then
+				error("[Parser] Expected expression")
+			else
+				funcParam.default = exprRes.data
+			end
 		end
-]]
 
 		return {success = true, data = funcParam}
+	end,
+
+	parseExpression = function(self, precedence, prevExpr, closeParenTreatment)
+		if (self.currentToken == nil) then
+			return {success = false}
+		end
+
+		precedence = precedence or 0
+
+		local expr
+
+		-- keyword
+		if (self.currentToken.type == TokenType.KEYWORD) then
+			-- `true` or `false`
+			if (self.currentToken.contents == "true" or self.currentToken.contents == "false") then
+				expr = newLiteralBoolean(self.currentToken.contents)
+				self:next()
+			end
+
+		-- ( and )
+		elseif (self.currentToken.type == TokenType.OPERATOR) then
+				-- (
+				 if (self.currentToken.contents == '(') then
+					self:next()
+					local res = self:parseExpression(LOWEST_PRECEDENCE, nil, CLOSE_PAREN_TERMINATE)
+					if (not res.success) then
+						error("[Parser] Expected statement")
+					else
+						expr = res.data
+					end
+				-- )
+				elseif (self.currentToken.contents == ')') then
+					if (closeParenTreatment == CLOSE_PAREN_TERMINATE) then
+						self:next()
+						return {success = true, data = prevExpr}
+					elseif (closeParenTreatment == CLOSE_PAREN_IGNORE) then
+						return {success = false}
+					end
+				else
+					return {success = false}
+				end
+
+		-- identifier
+		elseif (self.currentToken.type == TokenType.IDENTIFIER) then
+			expr = newIdentifier(self.currentToken.contents)
+			self:next()
+
+		-- literal_n
+		elseif (self.currentToken.type == TokenType.LITERAL_N) then
+			expr = newLiteral("number", self.currentToken.contents)
+			self:next()
+
+		-- literal_s
+		elseif (self.currentToken.type == TokenType_LITERAL_S) then
+			expr = newLiteral("string", self.currentToken.contents)
+			self:next()
+
+		-- token is assumed to be an operator
+		-- TODO precedence-based parsing
+		end
+
+		if (expr == nil) then
+			return {success = false}
+		end
+
+		local nextExpr = {success = true, data = expr, precedence = exprPrecedence}
+		repeat
+			-- TODO associativity
+			local res = self:parseExpression(0, nextExpr.data, closeParenTreatment)
+			if (not res.success) then
+				break
+			else
+				nextExpr = res
+			end
+		until (nextExpr.precedence >= exprPrecedence)
+
+		return {success = true, data = nextExpr.data, closeParenTreatment = closeParenTreatment, precedence = exprPrecedence}
 	end
 }
 
