@@ -103,7 +103,7 @@ local parser = {
 
 		while (not (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == ')')) do
 			if (#func.params >= 1) then
-				self:expect(TokenType.OPERATOR, ',')
+				self:expect(TokenType.COMMA)
 			end
 
 			table.insert(func.params, self:parseFunctionParameter().data)
