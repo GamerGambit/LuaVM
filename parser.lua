@@ -1,6 +1,5 @@
 local lexer = require("lexer")
 
-local LOWEST_PRECEDENCE = 16
 local ASSOCIATIVITY_LEFT = 0
 local ASSOCIATIVITY_RIGHT = 0
 local CLOSE_PAREN_IGNORE = 0
