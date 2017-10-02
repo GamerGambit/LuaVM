@@ -67,6 +67,13 @@ local function newDot(left, right)
 	}
 end
 
+local function newUnaryPrefix(symbol, operand)
+	return {
+		type = "unary-prefix",
+		operand = operand
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -253,7 +260,25 @@ local parser = {
 						self:expect(TokenType.OPERATOR, ']')
 						exprPrecedence = 0
 					end
-				else
+				end
+
+				if (expr == nil and precedence < 2 and (self.currentToken.contents == '!' or
+						  self.currentToken.contents == "++" or self.currentToken.contents == "--" or
+						  self.currentToken.contents == '-' or self.currentToken.contents == '+' or
+						  self.currentToken.contents == '~' or self.currentToken.contents == '#')) then
+					local currentContents = self.currentToken.contents
+					self:next()
+					local res = self:parseExpression(0, nil, closeParenTreatment)
+					if (not res.success) then
+						error("[Parser] expected expression")
+					else
+						expr = newUnaryPrefix(currentContents, res.data)
+						exprPrecedence = 1
+					end
+				end
+
+
+				if (expr == nil) then
 					return {success = false}
 				end
 
