@@ -182,7 +182,7 @@ local parser = {
 
 		if (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == '=') then
 			self:next()
-			local exprRes = self:parseExpression(LOWEST_PRECEDENCE, nil, CLOSE_PAREN_IGNORE)
+			local exprRes = self:parseExpression(0, nil, CLOSE_PAREN_IGNORE)
 			if (not exprRes.success) then
 				error("[Parser] Expected expression")
 			else
@@ -197,8 +197,6 @@ local parser = {
 		if (self.currentToken == nil) then
 			return {success = false}
 		end
-
-		precedence = precedence or 0
 
 		local expr
 		local exprPrecedence
@@ -216,7 +214,7 @@ local parser = {
 				-- (
 				 if (self.currentToken.contents == '(') then
 					self:next()
-					local res = self:parseExpression(LOWEST_PRECEDENCE, nil, CLOSE_PAREN_TERMINATE)
+					local res = self:parseExpression(0, nil, CLOSE_PAREN_TERMINATE)
 					if (not res.success) then
 						error("[Parser] Expected statement")
 					else
@@ -238,7 +236,7 @@ local parser = {
 							error("[Parser] Expected expression")
 						else
 							expr = newUnaryPostFix(self.currentToken.contents, prevExpr)
-							exprPrecedence = 1
+							exprPrecedence = 0
 						end
 
 						self:next()
@@ -247,10 +245,10 @@ local parser = {
 						local res = self:parseExpression(0, prevExpr, closeParenTreatment)
 						if (not res.success) then
 							expr = newArray()
-							return {success = true, data = newArray(), precedence = LOWEST_PRECEDENCE}
+							return {success = true, data = newArray(), precedence = 10}
 						else
 							expr = newSubScript(prevExpr, res.data)
-							exprPrecedence = LOWEST_PRECEDENCE
+							exprPrecedence = 0
 						end
 
 						self:expect(TokenType.OPERATOR, ']')
