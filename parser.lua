@@ -44,9 +44,10 @@ local function newUnaryPostfix(symbol, operand)
 	}
 end
 
-local function newArray()
+local function newArray(sequenceExpr)
 	return{
-		type = "array-definition"
+		type = "array-definition",
+		sequenceExpr = sequenceExp
 	}
 end
 
@@ -230,27 +231,27 @@ local parser = {
 				end
 
 				if (precedence < 1) then
-					if (self.currentToken.contents == "++" or self.currentToken == "--") then
-						if (prevExpr == nil) then
-							error("[Parser] Expected expression")
-						else
-							expr = newUnaryPostFix(self.currentToken.contents, prevExpr)
+					-- TODO add function call
+					if (self.currentToken.contents == "++" or self.currentToken.contents == "--") then
+						if (prevExpr ~= nil) then
+							expr = newUnaryPostfix(self.currentToken.contents, prevExpr)
 							exprPrecedence = 0
+							self:next()
 						end
 
-						self:next()
 					elseif (self.currentToken.contents == '[') then
 						self:next()
+
 						local res = self:parseExpression(0, nil, closeParenTreatment)
-						if (not res.success) then
-							expr = newArray()
-							return {success = true, data = newArray(), precedence = 10}
+
+						if (prevExpr == nil) then
+							expr = newArray(res.data)
 						else
 							expr = newSubScript(prevExpr, res.data)
-							exprPrecedence = 0
 						end
 
 						self:expect(TokenType.OPERATOR, ']')
+						exprPrecedence = 0
 					end
 				else
 					return {success = false}
