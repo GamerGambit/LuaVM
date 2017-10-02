@@ -242,7 +242,7 @@ local parser = {
 						self:next()
 					elseif (self.currentToken.contents == '[') then
 						self:next()
-						local res = self:parseExpression(0, prevExpr, closeParenTreatment)
+						local res = self:parseExpression(0, nil, closeParenTreatment)
 						if (not res.success) then
 							expr = newArray()
 							return {success = true, data = newArray(), precedence = 10}
