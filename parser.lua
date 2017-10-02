@@ -74,6 +74,15 @@ local function newUnaryPrefix(symbol, operand)
 	}
 end
 
+local function newBinaryOperator(symbol, left, right)
+	return {
+		type = "binary-operator",
+		symbol = symbol,
+		left = left,
+		right = right
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -274,6 +283,21 @@ local parser = {
 					else
 						expr = newUnaryPrefix(currentContents, res.data)
 						exprPrecedence = 1
+					end
+				end
+
+				if (expr == nil and precedence < 3 and self.currentToken.contents == "**") then 
+					self:next()
+					if (prevExpr == nil) then
+						error("[Parser] expected expression")
+					else
+						local res = self:parseExpression(0, nil, closeParenTreatment)
+						if (not res.success) then
+							error("[Parser] expected expression")
+						else
+							expr = newBinaryOperator("**", prevExpr, res.data)
+							exprPrecedence = 2
+						end
 					end
 				end
 
