@@ -221,7 +221,8 @@ local parser = {
 		if (self.currentToken.type == TokenType.KEYWORD) then
 			-- `true` or `false`
 			if (self.currentToken.contents == "true" or self.currentToken.contents == "false") then
-				expr = newLiteralBoolean(self.currentToken.contents)
+				expr = newLiteral("boolean", self.currentToken.contents)
+				exprPrecedence = 0
 				self:next()
 			end
 
