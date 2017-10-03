@@ -98,7 +98,7 @@ local parser = {
 				if (v == self.currentToken.type) then gotTypeName = k end
 			end
 
-			return error(string.format("[Parser] expected %s, got %s:%s", msg and msg or expectedTypeName and (contents and ":" .. contents or ""), gotTypeName, self.currentToken.contents))
+			error(string.format("[Parser] expected %s, got %s:%s", (msg and msg) or (expectedTypeName .. (contents and ":" .. contents or "")), gotTypeName, self.currentToken.contents))
 		end
 
 		local currentContents = self.currentToken.contents
