@@ -277,6 +277,7 @@ local parser = {
 						  self.currentToken.contents == "++" or self.currentToken.contents == "--" or
 						  self.currentToken.contents == '-' or self.currentToken.contents == '+' or
 						  self.currentToken.contents == '~' or self.currentToken.contents == '#')) then
+					self:next()
 					local res = self:parseExpression(0, nil)
 					if (not res.success) then
 						error("[Parser] expected expression")
