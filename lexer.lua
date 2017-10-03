@@ -4,7 +4,9 @@ TokenType = {
 	OPERATOR		= 0x2,
 	LITERAL_N	= 0x3,
 	LITERAL_S	= 0x4,
-	COMMA			= 0x5
+	COMMA			= 0x5,
+	PAREN			= 0x6,
+	ASSIGNMENT	= 0x7
 }
 
 local keywords = {
@@ -275,8 +277,11 @@ local lexer = {
 			elseif (self.currentChar == '+') then
 				self:next()
 
-				if (self.currentChar == '+' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '+' .. self.currentChar))
+				if (self.currentChar == '=') then
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "+="))
+					self:next()
+				elseif (self.currentChar == '+') then
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, "++"))
 					self:next()
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '+'))
@@ -285,8 +290,11 @@ local lexer = {
 			elseif (self.currentChar == '-') then
 				self:next()
 
-				if (self.currentChar == '-' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '-' .. self.currentChar))
+				if (self.currentChar == '=') then
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "-="))
+					self:next()
+				elseif (self.currentChar == '-') then
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, "--"))
 					self:next()
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '-'))
@@ -295,8 +303,11 @@ local lexer = {
 			elseif (self.currentChar == '*') then
 				self:next()
 
-				if (self.currentChar == '*' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '*' .. self.currentChar))
+				if (self.currentChar == '=') then
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "*="))
+					self:next()
+				elseif (self.currentChar == '*') then
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, "**"))
 					self:next()
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '*'))
@@ -312,7 +323,7 @@ local lexer = {
 					self:next()
 					self:readBlockComment()
 				elseif (self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '/' .. self.currentChar))
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "/="))
 					self:next()
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '/'))
@@ -322,7 +333,7 @@ local lexer = {
 				self:next()
 
 				if (self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, "%="))
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "%="))
 					self:next()
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '%'))
@@ -331,19 +342,17 @@ local lexer = {
 			elseif (self.currentChar == '^') then
 				self:next()
 
-				if (self.currentChar == '^' or self.currentChar == '=') then
-					if (self.currentChar == '^') then
-						self:next()
+				if (self.currentChar == '=') then
+					self:next()
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "^="))
+				elseif (self.currentChar == '^') then
+					self:next()
 
-						if (self.currentChar == '=') then
-							self:next()
-							table.insert(self.tokens, newToken(TokenType.OPERATOR, "^^="))
-						else
-							table.insert(self.tokens, newToken(TokenType.OPERATOR, "^^"))
-						end
-					else
+					if (self.currentChar == '=') then
 						self:next()
-						table.insert(self.tokens, newToken(TokenType.OPERATOR, "^="))
+						table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "^^="))
+					else
+						table.insert(self.tokens, newToken(TokenType.OPERATOR, "^^"))
 					end
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '^'))
@@ -352,9 +361,18 @@ local lexer = {
 			elseif (self.currentChar == '&') then
 				self:next()
 
-				if (self.currentChar == '&' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '&' .. self.currentChar))
+				if (self.currentChar == '=') then
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "&="))
 					self:next()
+				elseif (self.currentChar == '&') then
+					self:next()
+
+					if (self.currentChar == '=') then
+						self:next()
+						table.insert(self.tokens, newToken(TokeType.ASSIGNMENT, "&&="))
+					else
+						table.insert(self.tokens, newToken(TokenType.OPERATOR, "&&"))
+					end
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '&'))
 				end
@@ -362,9 +380,18 @@ local lexer = {
 			elseif (self.currentChar == '|') then
 				self:next()
 
-				if (self.currentChar == '|' or self.currentChar == '=') then
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '|' .. self.currentChar))
+				if (self.currentChar == '=') then
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "|="))
 					self:next()
+				elseif (self.currentChar == '|') then
+					self:next()
+
+					if (self.currentChar == '=') then
+						self:next()
+						table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "||="))
+					else
+						table.insert(self.tokens, newToken(TokenType.OPERATOR, "||"))
+					end
 				else
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, '|'))
 				end
@@ -382,7 +409,7 @@ local lexer = {
 
 						if (self.currentChar == '=') then
 							self:next()
-							table.insert(self.tokens, newToken(TokenType.OPERATOR, "<<="))
+							table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, "<<="))
 						else
 							table.insert(self.tokens, newToken(TokenType.OPERATOR, "<<"))
 						end
@@ -403,7 +430,7 @@ local lexer = {
 
 						if (self.currentChar == '=') then
 							self:next()
-							table.insert(self.tokens, newToken(TokenType.OPERATOR, ">>="))
+							table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, ">>="))
 						else
 							table.insert(self.tokens, newToken(TokenType.OPERATOR, ">>"))
 						end
@@ -422,7 +449,7 @@ local lexer = {
 					self:next()
 					table.insert(self.tokens, newToken(TokenType.OPERATOR, "=="))
 				else
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '='))
+					table.insert(self.tokens, newToken(TokenType.ASSIGNMENT, '='))
 				end
 
 			elseif (self.currentChar == '!') then
@@ -439,8 +466,11 @@ local lexer = {
 				self:next()
 				table.insert(self.tokens, newToken(TokenType.COMMA))
 
-			elseif (self.currentChar == '.' or self.currentChar == '(' or
-					  self.currentChar == ')' or self.currentChar == '{' or self.currentChar == '}' or
+			elseif (self.currentChar == '(' or self.currentChar == ')') then
+				table.insert(self.tokens, newToken(TokenType.PAREN, self.currentChar))
+				self:next()
+
+			elseif (self.currentChar == '.' or self.currentChar == '{' or self.currentChar == '}' or
 					  self.currentChar == '[' or self.currentChar == ']' or self.currentChar == '#' or
 					  self.currentChar == '@' or self.currentChar == ':' or self.currentChar == '?' or
 					  self.currentChar == ';') then
