@@ -2,8 +2,6 @@ local lexer = require("lexer")
 
 local ASSOCIATIVITY_LEFT = 0
 local ASSOCIATIVITY_RIGHT = 0
-local CLOSE_PAREN_IGNORE = 0
-local CLOSE_PAREN_TERMINATE = 1
 
 local function newFunctionDefinition(name)
 	return {
@@ -199,7 +197,7 @@ local parser = {
 
 		if (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == '=') then
 			self:next()
-			local exprRes = self:parseExpression(0, nil, CLOSE_PAREN_IGNORE)
+			local exprRes = self:parseExpression(0, nil)
 			if (not exprRes.success) then
 				error("[Parser] Expected expression")
 			else
@@ -210,7 +208,7 @@ local parser = {
 		return {success = true, data = funcParam}
 	end,
 
-	parseExpression = function(self, precedence, prevExpr, closeParenTreatment)
+	parseExpression = function(self, precedence, prevExpr)
 		if (self.currentToken == nil) then
 			return {success = false}
 		end
@@ -232,21 +230,17 @@ local parser = {
 				-- (
 				 if (self.currentToken.contents == '(') then
 					self:next()
-					local res = self:parseExpression(0, nil, CLOSE_PAREN_TERMINATE)
+					local res = self:parseExpression(0, nil)
 					if (not res.success) then
 						error("[Parser] Expected statement")
 					else
+						self:expect(TokenType.OPERATOR, ')')
 						expr = res.data
 						exprPrecedence = 0
 					end
 				-- )
 				elseif (self.currentToken.contents == ')') then
-					if (closeParenTreatment == CLOSE_PAREN_TERMINATE) then
-						self:next()
-						return {success = true, data = prevExpr, precedence = 0}
-					elseif (closeParenTreatment == CLOSE_PAREN_IGNORE) then
-						return {success = false}
-					end
+					return {success = false}
 				end
 
 				if (expr == nil and precedence < 1) then
@@ -261,7 +255,7 @@ local parser = {
 					elseif (self.currentToken.contents == '[') then
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 
 						if (prevExpr == nil) then
 							expr = newArray(res.data)
@@ -287,7 +281,7 @@ local parser = {
 						  self.currentToken.contents == "++" or self.currentToken.contents == "--" or
 						  self.currentToken.contents == '-' or self.currentToken.contents == '+' or
 						  self.currentToken.contents == '~' or self.currentToken.contents == '#')) then
-					local res = self:parseExpression(0, nil, closeParenTreatment)
+					local res = self:parseExpression(0, nil)
 					if (not res.success) then
 						error("[Parser] expected expression")
 					else
@@ -303,7 +297,7 @@ local parser = {
 					if (prevExpr == nil) then
 						error("[Parser] expected expression")
 					else
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -320,7 +314,7 @@ local parser = {
 					else
 						local currentContents = self.currentToken.contents
 						self:next()
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -338,7 +332,7 @@ local parser = {
 					else
 						local currentContents = self.currentToken.contents
 						self:next()
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -356,7 +350,7 @@ local parser = {
 					else
 						local currentContents = self.currentToken.contents
 						self:next()
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -375,7 +369,7 @@ local parser = {
 						local currentContents = self.currentToken.contents
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression ")
 						else
@@ -394,7 +388,7 @@ local parser = {
 						local currentContents = self.currentToken.contents
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -409,7 +403,7 @@ local parser = {
 						error("[Parser] expected expression")
 					else
 						self:next()
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -425,7 +419,7 @@ local parser = {
 					else
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -441,7 +435,7 @@ local parser = {
 					else
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -457,7 +451,7 @@ local parser = {
 					else
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -473,7 +467,7 @@ local parser = {
 					else
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -489,7 +483,7 @@ local parser = {
 					else
 						self:next()
 
-						local res = self:parseExpression(0, nil, closeParenTreatment)
+						local res = self:parseExpression(0, nil)
 						if (not res.success) then
 							error("[Parser] expected expression")
 						else
@@ -504,12 +498,12 @@ local parser = {
 						error("[Parser] expected expression")
 					else
 						self:next()
-						local bodyRes = self:parseExpression(0, nil, closeParenTreatment)
+						local bodyRes = self:parseExpression(0, nil)
 						if (not bodyRes.success) then
 							error("[Parser] expected expression")
 						else
 							self:expect(TokenType.OPERATOR, ':')
-							local elseRes = self:parseExpression(0, nil, closeParenTreatment)
+							local elseRes = self:parseExpression(0, nil)
 							if (not elseRes.success) then
 								error("[Parser] expected expression")
 							else
@@ -557,7 +551,7 @@ local parser = {
 
 		local nextExpr = {success = true, data = expr, precedence = exprPrecedence}
 		repeat
-			local res = self:parseExpression((associativity == ASSOCIATIVITY_LEFT) and nextExpr.precedence or nextExpr.precedence - 1, nextExpr.data, closeParenTreatment)
+			local res = self:parseExpression((associativity == ASSOCIATIVITY_LEFT) and nextExpr.precedence or nextExpr.precedence - 1, nextExpr.data)
 			if (not res.success) then
 				break
 			else
@@ -565,7 +559,7 @@ local parser = {
 			end
 		until (nextExpr.precedence >= exprPrecedence)
 
-		return {success = true, data = nextExpr.data, closeParenTreatment = closeParenTreatment, precedence = exprPrecedence}
+		return {success = true, data = nextExpr.data, precedence = exprPrecedence}
 	end
 }
 
