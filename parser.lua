@@ -59,14 +59,6 @@ local function newSubScript(operand, expr)
 	}
 end
 
-local function newDot(left, right)
-	return {
-		type = "dot",
-		left = left,
-		right = right
-	}
-end
-
 local function newUnaryPrefix(symbol, operand)
 	return {
 		type = "unary-prefix",
@@ -268,6 +260,15 @@ local parser = {
 
 						self:expect(TokenType.OPERATOR, ']')
 						exprPrecedence = 0
+
+					elseif (self.currentToken.contents == '.') then
+						self:next()
+						if (prevExpr == nil) then
+							error("[Parser] expected expressions")
+						else
+							expr = newBinaryOperator('.', prevExpr, newLiteral("string", self:expect(TokenType.IDENTIFIER)))
+							exprPrecedence = 0
+						end
 					end
 				end
 
@@ -286,7 +287,7 @@ local parser = {
 					end
 				end
 
-				if (expr == nil and precedence < 3 and self.currentToken.contents == "**") then 
+				if (expr == nil and precedence < 3 and self.currentToken.contents == "**") then
 					self:next()
 					if (prevExpr == nil) then
 						error("[Parser] expected expression")
