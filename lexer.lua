@@ -371,13 +371,7 @@ local lexer = {
 
 			elseif (self.currentChar == '~') then
 				self:next()
-
-				if (self.currentChar == '=') then
-					self:next()
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, "~="))
-				else
-					table.insert(self.tokens, newToken(TokenType.OPERATOR, '~'))
-				end
+				table.insert(self.tokens, newToken(TokenType.OPERATOR, '~'))
 
 			elseif (self.currentChar == '<') then
 				self:next()
