@@ -164,9 +164,9 @@ local parser = {
 
 		local func = newFunctionDefinition(self:expect(TokenType.IDENTIFIER))
 
-		self:expect(TokenType.OPERATOR, '(')
+		self:expect(TokenType.PAREN, '(')
 
-		while (not (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == ')')) do
+		while (not (self.currentToken.type == TokenType.PAREN and self.currentToken.contents == ')')) do
 			if (#func.params >= 1) then
 				self:expect(TokenType.COMMA)
 			end
@@ -174,7 +174,7 @@ local parser = {
 			table.insert(func.params, self:parseFunctionParameter().data)
 		end
 
-		self:expect(TokenType.OPERATOR, ')')
+		self:expect(TokenType.PAREN, ')')
 		self:expect(TokenType.OPERATOR, '{')
 
 		while (self.currentToken.type ~= TokenType.OPERATOR and self.currentToken.contents ~= '}') do
@@ -214,7 +214,7 @@ local parser = {
 		end
 
 		local expr
-		local exprPrecedence
+		local exprPrecedence = 0
 
 		-- keyword
 		if (self.currentToken.type == TokenType.KEYWORD) then
@@ -225,23 +225,19 @@ local parser = {
 				self:next()
 			end
 
+		elseif (self.currentToken.type == TokenType.PAREN and self.currentToken.contents == '(') then
+			self:next()
+			local res = self:parseExpression(0, nil)
+			if (not res.success) then
+				error("[Parser] Expected statement")
+			else
+				self:expect(TokenType.PAREN, ')')
+				expr = res.data
+				exprPrecedence = 0
+			end
+
 		-- ( and )
 		elseif (self.currentToken.type == TokenType.OPERATOR) then
-				-- (
-				 if (self.currentToken.contents == '(') then
-					self:next()
-					local res = self:parseExpression(0, nil)
-					if (not res.success) then
-						error("[Parser] Expected statement")
-					else
-						self:expect(TokenType.OPERATOR, ')')
-						expr = res.data
-						exprPrecedence = 0
-					end
-				-- )
-				elseif (self.currentToken.contents == ')') then
-					return {success = false}
-				end
 
 				if (expr == nil and precedence < 1) then
 					-- TODO add function call
