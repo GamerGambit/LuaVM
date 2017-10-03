@@ -424,6 +424,22 @@ local parser = {
 					end
 				end
 
+				if (expr == nil and precedence < 11 and self.currentToken.contents == '&') then
+					if (prevExpr == nil) then
+						error("[Parser] expected expression")
+					else
+						self:next()
+
+						local res = self:parseExpression(0, nil, closeParenTreatment)
+						if (not res.success) then
+							error("[Parser] expected expression")
+						else
+							expr = newBinaryOperator('&', prevExpr, res.data)
+							exprPrecedence = 10
+						end
+					end
+				end
+
 				if (expr == nil) then
 					return {success = false}
 				end
