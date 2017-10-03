@@ -75,6 +75,14 @@ local function newBinaryOperator(symbol, left, right)
 	}
 end
 
+local function newTernaryOperator(bodyExpr, elseExpr)
+	return {
+		type = "ternary-operator",
+		bodyExpr = bodyExpr,
+		elseExpr = elseExpr
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -484,6 +492,27 @@ local parser = {
 						else
 							expr = newBinaryOperator("||", prevExpr, res.data)
 							exprPrecedence = 13
+						end
+					end
+				end
+
+				if (expr == nil and precedence < 15 and self.currentToken.contents == '?') then
+					if (prevExpr == nil) then
+						error("[Parser] expected expression")
+					else
+						self:next()
+						local bodyRes = self:parseExpression(0, nil, closeParenTreatment)
+						if (not bodyRes.success) then
+							error("[Parser] expected expression")
+						else
+							self:expect(TokenType.OPERATOR, ':')
+							local elseRes = self:parseExpression(0, nil, closeParenTreatment)
+							if (not elseRes.success) then
+								error("[Parser] expected expression")
+							else
+								expr = newTernaryOperator(bodyRes.data, elseRes.data)
+								exprPrecedence = 14
+							end
 						end
 					end
 				end
