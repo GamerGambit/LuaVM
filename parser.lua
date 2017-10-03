@@ -220,9 +220,8 @@ local parser = {
 		if (self.currentToken.type == TokenType.KEYWORD) then
 			-- `true` or `false`
 			if (self.currentToken.contents == "true" or self.currentToken.contents == "false") then
-				expr = newLiteral("boolean", self.currentToken.contents)
-				exprPrecedence = 0
 				self:next()
+				return {success = true, data = newLiteral("boolean", self.currentToken.contents)}
 			end
 
 		elseif (self.currentToken.type == TokenType.PAREN and self.currentToken.contents == '(') then
