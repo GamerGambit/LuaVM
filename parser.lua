@@ -355,6 +355,25 @@ local parser = {
 					end
 				end
 
+				if (expr == nil and precedence < 7 and (
+					self.currentToken.contents == '>' or self.currentToken.contents == '<' or
+					self.currentToken.contents == ">=" or self.currentToken.contents == "<=")) then
+					if (prevExpr == nil) then
+						error("[Parser] expected expression")
+					else
+						local currentContents = self.currentToken.contents
+						self:next()
+
+						local res = self:parseExpression(0, nil, closeParenTreatment)
+						if (not res.success) then
+							error("[Parser] expected expression ")
+						else
+							expr = newBinaryOperator(currentContents, prevExpr, res.data)
+							exprPrecedence = 6
+						end
+					end
+				end
+
 				if (expr == nil) then
 					return {success = false}
 				end
