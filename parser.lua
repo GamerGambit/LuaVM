@@ -236,6 +236,7 @@ local parser = {
 						error("[Parser] Expected statement")
 					else
 						expr = res.data
+						exprPrecedence = 0
 					end
 				-- )
 				elseif (self.currentToken.contents == ')') then
@@ -247,7 +248,7 @@ local parser = {
 					end
 				end
 
-				if (precedence < 1) then
+				if (expr == nil and precedence < 1) then
 					-- TODO add function call
 					if (self.currentToken.contents == "++" or self.currentToken.contents == "--") then
 						if (prevExpr ~= nil) then
