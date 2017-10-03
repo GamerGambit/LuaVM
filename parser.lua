@@ -75,9 +75,10 @@ local function newBinaryOperator(symbol, left, right)
 	}
 end
 
-local function newTernaryOperator(bodyExpr, elseExpr)
+local function newTernaryOperator(condition, bodyExpr, elseExpr)
 	return {
 		type = "ternary-operator",
+		condition = condition,
 		bodyExpr = bodyExpr,
 		elseExpr = elseExpr
 	}
@@ -512,7 +513,7 @@ local parser = {
 							if (not elseRes.success) then
 								error("[Parser] expected expression")
 							else
-								expr = newTernaryOperator(bodyRes.data, elseRes.data)
+								expr = newTernaryOperator(prevExpr, bodyRes.data, elseRes.data)
 								exprPrecedence = 14
 							end
 						end
