@@ -280,16 +280,16 @@ local parser = {
 					end
 				end
 
-				if (expr == nil and precedence < 2 and (self.currentToken.contents == '!' or
+				if (expr == nil and prevExpr == nil and precedence < 2 and (self.currentToken.contents == '!' or
 						  self.currentToken.contents == "++" or self.currentToken.contents == "--" or
 						  self.currentToken.contents == '-' or self.currentToken.contents == '+' or
 						  self.currentToken.contents == '~' or self.currentToken.contents == '#')) then
-					local currentContents = self.currentToken.contents
-					self:next()
 					local res = self:parseExpression(0, nil, closeParenTreatment)
 					if (not res.success) then
 						error("[Parser] expected expression")
 					else
+						local currentContents = self.currentToken.contents
+						self:next()
 						expr = newUnaryPrefix(currentContents, res.data)
 						exprPrecedence = 1
 					end
