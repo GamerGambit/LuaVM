@@ -8,7 +8,9 @@ TokenType = {
 	BRK_PAREN	= 0x6,
 	BRK_SQUARE	= 0x7,
 	BRK_CURL		= 0x8,
-	ASSIGNMENT	= 0x9
+	ASSIGNMENT	= 0x9,
+	DOT			= 0xA,
+	SEMICOLON	= 0xB
 }
 
 local keywords = {
@@ -494,8 +496,22 @@ local lexer = {
 				table.insert(self.tokens, newToken(TokenType.BRK_CURL, self.currentChar))
 				self:next()
 
+			elseif (self.currentChar == '.') then
+				self:next()
+
+				if (self.currentChar == '.') then
+					self:next()
+					table.insert(self.tokens, newToken(TokenType.OPERATOR, ".."))
+				else
+					table.insert(self.tokens, newToken(TokenType.DOT))
+				end
+
+			elseif (self.currentChar == ';') then
+				self:next()
+				table.insert(self.tokens, newToken(TokenType.SEMICOLON))
+
 			elseif (self.currentChar == '.' or self.currentChar == '#' or self.currentChar == '@' or
-					  self.currentChar == ':' or self.currentChar == '?' or self.currentChar == ';') then
+					  self.currentChar == ':' or self.currentChar == '?') then
 				table.insert(self.tokens, newToken(TokenType.OPERATOR, self.currentChar))
 				self:next()
 
