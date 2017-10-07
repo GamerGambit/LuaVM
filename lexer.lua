@@ -5,8 +5,10 @@ TokenType = {
 	LITERAL_N	= 0x3,
 	LITERAL_S	= 0x4,
 	COMMA			= 0x5,
-	PAREN			= 0x6,
-	ASSIGNMENT	= 0x7
+	BRK_PAREN	= 0x6,
+	BRK_SQUARE	= 0x7,
+	BRK_CURL		= 0x8,
+	ASSIGNMENT	= 0x9
 }
 
 local keywords = {
@@ -467,13 +469,19 @@ local lexer = {
 				table.insert(self.tokens, newToken(TokenType.COMMA))
 
 			elseif (self.currentChar == '(' or self.currentChar == ')') then
-				table.insert(self.tokens, newToken(TokenType.PAREN, self.currentChar))
+				table.insert(self.tokens, newToken(TokenType.BRK_PAREN, self.currentChar))
 				self:next()
 
-			elseif (self.currentChar == '.' or self.currentChar == '{' or self.currentChar == '}' or
-					  self.currentChar == '[' or self.currentChar == ']' or self.currentChar == '#' or
-					  self.currentChar == '@' or self.currentChar == ':' or self.currentChar == '?' or
-					  self.currentChar == ';') then
+			elseif (self.currentChar == '[' or self.currentChar == ']') then
+				table.insert(self.tokens, newToken(TokenType.BRK_SQUARE, self.currentChar))
+				self:next()
+
+			elseif (self.currentChar == '{' or self.currentChar == '}') then
+				table.insert(self.tokens, newToken(TokenType.BRK_CURL, self.currentChar))
+				self:next()
+
+			elseif (self.currentChar == '.' or self.currentChar == '#' or self.currentChar == '@' or
+					  self.currentChar == ':' or self.currentChar == '?' or self.currentChar == ';') then
 				table.insert(self.tokens, newToken(TokenType.OPERATOR, self.currentChar))
 				self:next()
 
