@@ -513,7 +513,7 @@ local lexer = {
 				self:next()
 				table.insert(self.tokens, newToken(TokenType.SEMICOLON))
 
-			elseif (self.currentChar == '.' or self.currentChar == '#' or self.currentChar == '@' or
+			elseif (self.currentChar == '#' or self.currentChar == '@' or
 					  self.currentChar == ':' or self.currentChar == '?') then
 				table.insert(self.tokens, newToken(TokenType.OPERATOR, self.currentChar))
 				self:next()
