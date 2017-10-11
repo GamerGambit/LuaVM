@@ -118,28 +118,31 @@ local lexer = {
 
 		local lastWasUnderscore = false
 
-		while (not self:eof() and (isDigit(self.currentChar) or isHexDigit(self.currentChar) or
-				self.currentChar == '+' or self.currentChar == '-' or self.currentChar == '.' or
-				self.currentChar == 'e' or self.currentChar == 'E' or self.currentChar == '_')) do
+		while (not self:eof() and (isDigit(self.currentChar) or isHexDigit(self.currentChar) or self.currentChar == '.' or
+			self.currentChar == 'e' or self.currentChar == 'E' or self.currentChar == '_')) do
 			if (self.currentChar == '_') then
 				local lastNumChar = string.sub(numStr, #numStr, #numStr)
 				if (not isDigit(lastNumChar) and not isHexDigit(lastNumChar)) then
-					print(lastNumChar)
 					self:error("Invalid use of digit separator")
 				end
 
 				lastWasUnderscore = true
 			else
-				if (self.currentChar == 'e' or self.currentChar == 'E' or
-					 self.currentChar == '+' or self.currentChar == '-') then
-					if (lastWasUnderscore) then
-						self:error("Invalid use of digit separator")
-					end
+				if (self.currentChar == 'e' or self.currentChar == 'E') then
+					if (lastWasUnderscore) then self:error("Invalid use of digit separator") end
+					self:next()
+
+					if (self.currentChar ~= '+' and self.currentChar ~= '-') then self:error("Malformed scientific number") end
 
 					numType = numberType.SCIENTIFIC
+					numStr = numStr .. 'e' .. self.currentChar
+					goto sci_ecs
 				end
 
 				numStr = numStr .. self.currentChar
+
+				::sci_ecs::
+
 				lastWasUnderscore = false
 			end
 
