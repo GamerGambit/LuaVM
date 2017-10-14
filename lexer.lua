@@ -14,10 +14,11 @@ TokenType = {
 }
 
 local keywords = {
+	"true",
+	"false",
+	"null",
 	"function",
 	"if",
-	"true",
-	"false"
 }
 
 local numberType = {
