@@ -22,7 +22,7 @@ end
 
 return {
 	{
-		token = { type = TokenType.OPERATOR, contents = '-'},
+		token = { type = TokenType.OPERATOR, contents = '-' },
 		func = function(parser, token) return newUnaryPrefix('-', parser:parseExpression(14)) end
 	},
 
@@ -32,7 +32,7 @@ return {
 	},
 
 	{
-		token = { type = TokenType.OPERATOR, contents = '+'},
+		token = { type = TokenType.OPERATOR, contents = '+' },
 		func = function(parser, token) return newUnaryPrefix('+', parser:parseExpression(14)) end
 	},
 
@@ -42,17 +42,17 @@ return {
 	},
 
 	{
-		token = { type = TokenType.OPERATOR, contents = '~'},
+		token = { type = TokenType.OPERATOR, contents = '~' },
 		func = function(parser, token) return newUnaryPrefix('!', parser:parseExpression(14)) end
 	},
 
 	{
-		token = { type = TokenType.OPERATOR, contents = '!'},
+		token = { type = TokenType.OPERATOR, contents = '!' },
 		func = function(parser, token) return newUnaryPrefix('!', parser:parseExpression(14)) end
 	},
 
 	{
-		token = { type = TokenType.OPERATOR, contents = '#'},
+		token = { type = TokenType.OPERATOR, contents = '#' },
 		func = function(parser, token) return newUnaryPrefix('#', parser:parseExpression(14)) end
 	},
 

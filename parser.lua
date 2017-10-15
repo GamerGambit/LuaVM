@@ -65,6 +65,58 @@ local parser = {
 		self.currentToken = self.tokens[self.tokenIndex]
 	end,
 
+	reconstruct = function(self)
+		local function reconstructNode(node)
+			if (string.sub(node.type, 1, 7) == "literal") then
+				return node.value
+
+			elseif (node.type == "identifier") then
+				return node.identifier
+
+			elseif (node.type == "unary-prefix") then
+				return node.symbol .. reconstructNode(node.right)
+
+			elseif (node.type == "subscript") then
+				local str = reconstructNode(node.left) .. '['
+
+				for k, v in ipairs(node.exprs) do
+					if (k > 1) then str = str .. ", " end
+					str = str .. reconstructNode(v)
+				end
+
+				str = str .. ']'
+				return str
+
+			elseif (node.type == "function-call") then
+				local str = reconstructNode(node.funcExpr) .. '('
+
+				for k, v in ipairs(node.args) do
+					if (k > 1) then str = str .. ", " end
+					str = str .. reconstructNode(v)
+				end
+
+				str = str .. ')'
+				return str
+
+			elseif (node.type == "unary-postfix") then
+				return reconstructNode(node.left) .. node.symbol
+
+			elseif (node.type == "binary-operator") then
+				return reconstructNode(node.left) .. ' ' .. node.symbol .. ' ' .. reconstructNode(node.right)
+
+			elseif (node.type == "ternary-operator") then
+				return reconstructNode(node.condExpr) .. ") ? (" .. reconstructNode(node.thenExpr) .. " ) : (" .. reconstructNode(node.elseExpr)
+			end
+		end
+
+		local str = ""
+		for k, v in ipairs(self.tree) do
+			str = str .. reconstructNode(v)
+		end
+
+		print(str)
+	end,
+
 	parse = function(self, source)
 		self.tree = {}
 		self.tokens = lexer:lex(source)
