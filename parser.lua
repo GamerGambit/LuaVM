@@ -8,7 +8,7 @@ local function newFunctionDefinition(name)
 		type = "function-definition",
 		name = name,
 		params = {},
-		eval = {}
+		body = {}
 	}
 end
 
@@ -17,6 +17,14 @@ local function newFunctionParameter(name, default)
 		type = "function-parameter",
 		name = name,
 		default = default
+	}
+end
+
+local function newVariableDeclaration(type, name, expr)
+	return {
+		type = "vardecl-" .. type,
+		name = name,
+		expr = expr or { type = "literal-null" }
 	}
 end
 
@@ -68,7 +76,7 @@ local parser = {
 	reconstruct = function(self)
 		local function reconstructNode(node)
 			if (string.sub(node.type, 1, 7) == "literal") then
-				return node.value
+				return node.value or "null"
 
 			elseif (node.type == "identifier") then
 				return node.identifier
@@ -106,6 +114,47 @@ local parser = {
 
 			elseif (node.type == "ternary-operator") then
 				return reconstructNode(node.condExpr) .. ") ? (" .. reconstructNode(node.thenExpr) .. " ) : (" .. reconstructNode(node.elseExpr)
+
+			elseif (string.sub(node.type, 1, 7) == "vardecl") then
+				local str
+
+				if (string.sub(node.type, 9) == "local") then
+					str = "local"
+				else
+					str = "global"
+				end
+
+				str = str .. ' ' .. node.name
+				str = str .. " = " .. reconstructNode(node.expr)
+				return str
+
+			elseif (node.type == "function-definition") then
+				local str = "function " .. node.name .. '('
+
+				for k,v in ipairs(node.params) do
+					if (k > 1) then str = str .. ", " end
+					str = str .. reconstructNode(v)
+				end
+
+				str = str .. ")\n{\n\t"
+
+				for k,v in ipairs(node.body) do
+					if (k > 1) then str = str .. "\n\t" end
+					str = str .. reconstructNode(v)
+				end
+
+				str = str .. "\n}"
+
+				return str
+
+			elseif (node.type == "function-parameter") then
+				local str = node.name
+
+				if (node.default) then
+					str = str .. " = " .. reconstructNode(node.default)
+				end
+
+				return str
 			end
 		end
 
@@ -124,19 +173,56 @@ local parser = {
 		self:next()
 
 		while (not self:eos()) do
-			local res = self:parseExpression(0)
+			local res = self:parseGlobalVariableDeclaration() or
+							self:parseLocalVariableDeclaration() or
+							self:parseFunctionDefinition()
 
-			if (res ~= nil) then
-				table.insert(self.tree, res)
-			else
-				print("nil expression")
-				break
-			end
+			table.insert(self.tree, res)
 		end
 	end,
 
+	parseLocalVariableDeclaration = function(self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "local") then return end
+
+		self:next()
+
+		local vardecl = newVariableDeclaration("local", self:expect(TokenType.IDENTIFIER))
+
+		if (not self:eos() and self.currentToken.type == TokenType.ASSIGNMENT) then
+			self:expect(TokenType.ASSIGNMENT, '=')
+			local res = self:parseExpression(0)
+			if (res == nil) then error("[Parser] expected expression") end
+			vardecl.expr = res
+		end
+
+		return vardecl
+	end,
+
+	parseGlobalVariableDeclaration = function(self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "global") then return end
+
+		self:next()
+
+		local vardecl = newVariableDeclaration("global", self:expect(TokenType.IDENTIFIER))
+
+		if (not self:eos() and self.currentToken.type == TokenType.ASSIGNMENT) then
+			self:expect(TokenType.ASSIGNMENT, '=')
+			local res = self:parseExpression(0)
+			if (res == nil) then error("[Parser] expected expression") end
+			vardecl.expr = res
+		end
+
+		return vardecl
+	end,
+
 	parseFunctionDefinition = function(self)
-		if (self:eos() or not (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "function")) then return end
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "function") then return end
 
 		self:next()
 
@@ -149,17 +235,18 @@ local parser = {
 				self:expect(TokenType.COMMA)
 			end
 
-			table.insert(func.params, self:parseFunctionParameter().data)
+			table.insert(func.params, self:parseFunctionParameter())
 		end
 
 		self:expect(TokenType.BRK_PAREN, ')')
-		self:expect(TokenType.OPERATOR, '{')
+		self:expect(TokenType.BRK_CURL, '{')
 
-		while (self.currentToken.type ~= TokenType.OPERATOR and self.currentToken.contents ~= '}') do
-			table.insert(func.eval, self:parseStatement().data)
+		while (not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
+			local res = self:parseLocalVariableDeclaration()
+			table.insert(func.body, res)
 		end
 
-		self:expect(TokenType.OPERATOR, '}')
+		self:expect(TokenType.BRK_CURL, '}')
 
 		return func
 	end,
@@ -174,10 +261,10 @@ local parser = {
 		if (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == '=') then
 			self:next()
 			local exprRes = self:parseExpression(0, nil)
-			if (not exprRes.success) then
+			if (not exprRes) then
 				error("[Parser] Expected expression")
 			else
-				funcParam.default = exprRes.data
+				funcParam.default = exprRes
 			end
 		end
 

@@ -17,6 +17,8 @@ local keywords = {
 	"true",
 	"false",
 	"null",
+	"local",
+	"global",
 	"function",
 	"if",
 }
