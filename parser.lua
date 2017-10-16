@@ -3,6 +3,14 @@ local infixOperators = require("parser_infixoperators")
 local prefixParselets = require("parser_prefixparselets")
 local suffixParselets = require("parser_suffixparselets")
 
+local function newNamespaceDefinition(nameExpr)
+	return {
+		type = "namespace-definition",
+		nameExpr = nameExpr,
+		body = {}
+	}
+end
+
 local function newFunctionDefinition(name)
 	return {
 		type = "function-definition",
@@ -74,7 +82,10 @@ local parser = {
 	end,
 
 	reconstruct = function(self)
-		local function reconstructNode(node)
+		local function reconstructNode(node, indent)
+			indent = indent or 0
+			local ws = string.rep("    ", indent)
+
 			if (string.sub(node.type, 1, 7) == "literal") then
 				return node.value or "null"
 
@@ -110,7 +121,8 @@ local parser = {
 				return reconstructNode(node.left) .. node.symbol
 
 			elseif (node.type == "binary-operator") then
-				return reconstructNode(node.left) .. ' ' .. node.symbol .. ' ' .. reconstructNode(node.right)
+				local s = node.symbol == '.' and '' or ' '
+				return reconstructNode(node.left) .. s .. node.symbol .. s .. reconstructNode(node.right)
 
 			elseif (node.type == "ternary-operator") then
 				return reconstructNode(node.condExpr) .. ") ? (" .. reconstructNode(node.thenExpr) .. " ) : (" .. reconstructNode(node.elseExpr)
@@ -128,6 +140,18 @@ local parser = {
 				str = str .. " = " .. reconstructNode(node.expr)
 				return str
 
+			elseif (node.type == "namespace-definition") then
+				local str = "namespace " .. reconstructNode(node.nameExpr)
+				str = str .. '\n' .. ws .. '{'
+
+				for k,v in ipairs(node.body) do
+					str = str .. '\n' .. ws .. "    "
+					str = str .. reconstructNode(v, indent + 1)
+				end
+
+				str = str .. '\n' .. ws .. '}'
+				return str
+
 			elseif (node.type == "function-definition") then
 				local str = "function " .. node.name .. '('
 
@@ -136,14 +160,14 @@ local parser = {
 					str = str .. reconstructNode(v)
 				end
 
-				str = str .. ")\n{\n\t"
+				str = str .. ")\n" .. ws .. '{'
 
 				for k,v in ipairs(node.body) do
-					if (k > 1) then str = str .. "\n\t" end
+					str = str .. '\n' .. ws .. "    "
 					str = str .. reconstructNode(v)
 				end
 
-				str = str .. "\n}"
+				str = str .. '\n' .. ws .. '}'
 
 				return str
 
@@ -175,6 +199,7 @@ local parser = {
 		while (not self:eos()) do
 			local res = self:parseGlobalVariableDeclaration() or
 							self:parseLocalVariableDeclaration() or
+							self:parseNamespaceDefinition() or
 							self:parseFunctionDefinition()
 
 			table.insert(self.tree, res)
@@ -217,6 +242,32 @@ local parser = {
 		end
 
 		return vardecl
+	end,
+
+	parseNamespaceDefinition = function(self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "namespace") then return end
+
+		self:next()
+
+		local nameExpr = self:parseExpression(15)
+
+		if (nameExpr.type ~= "identifier" and not (nameExpr.type == "binary-operator" and nameExpr.symbol == '.')) then
+			error("[Parser] expected identifier")
+		end
+
+		local namespace = newNamespaceDefinition(nameExpr)
+		self:expect(TokenType.BRK_CURL, '{')
+
+		while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
+			local res = self:parseNamespaceDefinition() or
+						   self:parseFunctionDefinition()
+			table.insert(namespace.body, res)
+		end
+
+		self:expect(TokenType.BRK_CURL, '}')
+		return namespace
 	end,
 
 	parseFunctionDefinition = function(self)
