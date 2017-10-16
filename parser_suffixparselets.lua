@@ -104,7 +104,7 @@ return {
 	{
 		token = { type = TokenType.DOT },
 		func = function(parser, left, token)
-			return newBinaryOperator('.', left, parser:expect(TokenType.IDENTIFIER))
+			return newBinaryOperator('.', left, { type = "identifier", identifier = parser:expect(TokenType.IDENTIFIER) })
 		end
 	}
 }
