@@ -327,7 +327,7 @@ local parser = {
 
 		self:expect(TokenType.BRK_PAREN, '(')
 
-		while (not (self.currentToken.type == TokenType.BRK_PAREN and self.currentToken.contents == ')')) do
+		while (not self:eos() and not (self.currentToken.type == TokenType.BRK_PAREN and self.currentToken.contents == ')')) do
 			if (#func.params >= 1) then
 				self:expect(TokenType.COMMA)
 			end
@@ -342,6 +342,7 @@ local parser = {
 			local res = self:parseLocalVariableDeclaration() or
 							self:parseIfStatement() or
 							self:parseAssignmentOrFunctionCall()
+
 			table.insert(func.body, res)
 		end
 
@@ -356,16 +357,17 @@ local parser = {
 
 		local funcParam = newFunctionParameter(self:expect(TokenType.IDENTIFIER))
 
-		self:next()
+		if (self:eos()) then error("[Parser] unexpected end of file") end
 
-		if (self.currentToken.type == TokenType.OPERATOR and self.currentToken.contents == '=') then
-			self:next()
-			local exprRes = self:parseExpression(0, nil)
-			if (not exprRes) then
+		if (self.currentToken.type == TokenType.ASSIGNMENT) then
+			self:expect(TokenType.ASSIGNMENT, '=')
+
+			local exprRes = self:parseExpression(0)
+			if (exprRes == nil) then
 				error("[Parser] Expected expression")
-			else
-				funcParam.default = exprRes
 			end
+
+			funcParam.default = exprRes
 		end
 
 		return funcParam
