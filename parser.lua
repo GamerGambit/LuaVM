@@ -36,6 +36,15 @@ local function newVariableDeclaration(type, name, expr)
 	}
 end
 
+local function newAssignment(leftExpr, symbol, rightExpr)
+	return {
+		type = "assignment",
+		leftExpr = leftExpr,
+		symbol = symbol,
+		rightExpr = rightExpr
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -179,6 +188,9 @@ local parser = {
 				end
 
 				return str
+
+			elseif (node.type == "assignment") then
+				return reconstructNode(node.leftExpr) .. ' ' .. node.symbol .. ' ' .. reconstructNode(node.rightExpr)
 			end
 		end
 
@@ -293,7 +305,8 @@ local parser = {
 		self:expect(TokenType.BRK_CURL, '{')
 
 		while (not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
-			local res = self:parseLocalVariableDeclaration()
+			local res = self:parseLocalVariableDeclaration() or
+							self:parseAssignmentOrFunctionCall()
 			table.insert(func.body, res)
 		end
 
@@ -304,8 +317,9 @@ local parser = {
 
 	parseFunctionParameter = function(self)
 		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.IDENTIFIER) then return end
 
-		local funcParam = newFunctionParameter(self.currentToken.contents)
+		local funcParam = newFunctionParameter(self:expect(TokenType.IDENTIFIER))
 
 		self:next()
 
@@ -320,6 +334,42 @@ local parser = {
 		end
 
 		return funcParam
+	end,
+
+	parseAssignmentOrFunctionCall = function(self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.IDENTIFIER) then return end
+
+		local left = self:parseExpression(0)
+
+		if (not (left.type == "binary-operator" and left.symbol == '.') and
+			 left.type ~= "subscript" and
+			 left.type ~= "identifier" and
+			 left.type ~= "function-call") then
+			error("[Parser] Invalid expression")
+		end
+
+		if (left.type == "function-call") then
+			if (self:eos()) then return left end
+			if (self.currentToken.type == TokenType.ASSIGNMENT) then
+				error("[Parser] invalid assignment to function call")
+			end
+
+			return left
+		end
+
+		if (self.currentToken.type ~= TokenType.ASSIGNMENT) then
+			error("[Parser] expected assignment")
+		end
+
+		local symbol = self:expect(TokenType.ASSIGNMENT)
+		local right = self:parseExpression(0)
+
+		if (right == nil) then
+			error("[Parser] expected expression")
+		end
+
+		return newAssignment(left, symbol, right)
 	end,
 
 	getPrefixExpression = function(self)
