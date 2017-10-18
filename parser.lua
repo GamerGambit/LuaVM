@@ -54,6 +54,13 @@ local function newIfStatement(condExpr)
 	}
 end
 
+local function newReturnStatement(expr)
+	return {
+		type = "return-statement",
+		expr = expr or { type = "literal-null" }
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -188,6 +195,9 @@ local parser = {
 				str = str .. '\n' .. ws .. '}'
 
 				return str
+
+			elseif (node.type == "return-statement") then
+				return "return " .. reconstructNode(node.expr)
 
 			elseif (node.type == "function-parameter") then
 				local str = node.name
@@ -339,6 +349,12 @@ local parser = {
 		self:expect(TokenType.BRK_CURL, '{')
 
 		while (not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
+			if (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "return") then
+				self:next()
+				table.insert(func.body, newReturnStatement(self:parseExpression(0)))
+				break
+			end
+
 			local res = self:parseLocalVariableDeclaration() or
 							self:parseIfStatement() or
 							self:parseAssignmentOrFunctionCall()
