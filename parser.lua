@@ -45,6 +45,15 @@ local function newAssignment(leftExpr, symbol, rightExpr)
 	}
 end
 
+local function newIfStatement(condExpr)
+	return {
+		type = "if-statement",
+		condExpr = condExpr,
+		thenExprs = {},
+		elseExprs = {}
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -173,7 +182,7 @@ local parser = {
 
 				for k,v in ipairs(node.body) do
 					str = str .. '\n' .. ws .. "    "
-					str = str .. reconstructNode(v)
+					str = str .. reconstructNode(v, indent + 1)
 				end
 
 				str = str .. '\n' .. ws .. '}'
@@ -191,6 +200,31 @@ local parser = {
 
 			elseif (node.type == "assignment") then
 				return reconstructNode(node.leftExpr) .. ' ' .. node.symbol .. ' ' .. reconstructNode(node.rightExpr)
+
+			elseif (node.type == "if-statement") then
+				local str = "if (" .. reconstructNode(node.condExpr) .. ')'
+
+				if (#node.thenExprs > 1) then str = str  .. '\n' .. ws .. '{' end
+
+				for k, v in ipairs(node.thenExprs) do
+					str = str .. '\n' .. ws .. "    "
+					str = str .. reconstructNode(v, indent + 1)
+				end
+
+				if (#node.thenExprs > 1) then str = str .. '\n' .. ws .. '}' end
+				if (#node.elseExprs > 0) then
+					str = str .. '\n' .. ws .. "else"
+					if (#node.elseExprs > 1) then str = str .. '\n' .. ws .. '{' end
+
+					for k,v in ipairs(node.elseExprs) do
+						str = str .. '\n' .. ws .. "    "
+						str = str .. reconstructNode(v, indent + 1)
+					end
+
+					if (#node.elseExprs > 1) then str = str .. '\n' .. ws .. '}' end
+				end
+
+				return str
 			end
 		end
 
@@ -306,6 +340,7 @@ local parser = {
 
 		while (not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 			local res = self:parseLocalVariableDeclaration() or
+							self:parseIfStatement() or
 							self:parseAssignmentOrFunctionCall()
 			table.insert(func.body, res)
 		end
@@ -334,6 +369,78 @@ local parser = {
 		end
 
 		return funcParam
+	end,
+
+	parseIfStatement = function(self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "if") then return end
+
+		self:next()
+		self:expect(TokenType.BRK_PAREN, '(')
+
+		local condExpr = self:parseExpression(0)
+
+		if (condExpr == nil) then error("[Parser] expected expression") end
+
+		self:expect(TokenType.BRK_PAREN, ')')
+
+		if (self:eos()) then error("[Parser] unexpect end of file") end
+
+		local ifstmt = newIfStatement(condExpr)
+
+		if (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '{') then
+			self:next()
+			while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
+				local res = self:parseAssignmentOrFunctionCall() or
+								self:parseIfStatement()
+
+				if (res == nil) then break end
+
+				table.insert(ifstmt.thenExprs, res)
+			end
+
+			self:expect(TokenType.BRK_CURL, '}')
+		else
+			local res = self:parseAssignmentOrFunctionCall() or
+							self:parseIfStatement()
+
+			if (res == nil) then error("[Parser] expect statement") end
+
+			table.insert(ifstmt.thenExprs, res)
+		end
+
+		if (self:eos()) then return ifstmt end
+
+		if (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "else") then
+			self:next()
+
+			if (self:eos()) then error("[Parser] unexpected end of file") end
+
+			if (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '{') then
+				self:next()
+
+				while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
+					local res = self:parseAssignmentOrFunctionCall() or
+									self:parseIfStatement()
+
+					if (res == nil) then break end
+
+					table.insert(ifstmt.elseExprs, res)
+				end
+
+				self:expect(TokenType.BRK_CURL, '}')
+			else
+				local res = self:parseAssignmentOrFunctionCall() or
+								self:parseIfStatement()
+
+				if (res == nil) then error("[Parser] expected statement") end
+
+				table.insert(ifstmt.elseExprs, res)
+			end
+		end
+
+		return ifstmt
 	end,
 
 	parseAssignmentOrFunctionCall = function(self)
