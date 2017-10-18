@@ -51,7 +51,7 @@ local parser = {
 	expect = function(self, type, contents, msg)
 		if (self:eos()) then error("[Parser] Unexpected end of file") end
 
-		if (self.currentToken.type ~= type and (contents ~= nil and self.currentToken.contents == contents or true)) then
+		if (self.currentToken.type ~= type and (contents == nil or self.currentToken.contents == contents)) then
 			local expectedTypeName = "[Invalid Type]"
 			local gotTypeName = "[Invalid Type]"
 			for k,v in pairs(TokenType) do
