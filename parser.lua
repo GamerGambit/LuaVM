@@ -429,15 +429,10 @@ local parser = {
 		end
 
 		while (not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
-			if (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "return") then
-				self:next()
-				table.insert(func.body, newReturnStatement(self:parseExpression(0)))
-				break
-			end
-
 			local res = self:parseLocalVariableDeclaration() or
 							self:parseIfStatement() or
-							self:parseAssignmentOrFunctionCall()
+							self:parseAssignmentOrFunctionCall() or
+							self:parseFunctionReturnStatement()
 
 			if (res == nil) then error("[Parser] invalid statement") end
 
@@ -471,6 +466,16 @@ local parser = {
 		return funcParam
 	end,
 
+	parseFunctionReturnStatement = function (self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "return") then return end
+
+		self:next()
+
+		return newReturnStatement(self:parseExpression(0))
+	end,
+
 	parseIfStatement = function(self)
 		if (self:eos()) then return end
 		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
@@ -501,7 +506,8 @@ local parser = {
 
 			while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 				local res = self:parseAssignmentOrFunctionCall() or
-								self:parseIfStatement()
+								self:parseIfStatement() or
+								self:parseFunctionReturnStatement()
 
 				if (res == nil) then error("[Parser] invalid statement") end
 
@@ -511,7 +517,8 @@ local parser = {
 			self:expect(TokenType.BRK_CURL, '}')
 		else
 			local res = self:parseAssignmentOrFunctionCall() or
-							self:parseIfStatement()
+							self:parseIfStatement() or
+							self:parseFunctionReturnStatement()
 
 			if (res == nil) then error("[Parser] expect statement") end
 
@@ -530,7 +537,8 @@ local parser = {
 
 				while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 					local res = self:parseAssignmentOrFunctionCall() or
-									self:parseIfStatement()
+									self:parseIfStatement() or
+									self:parseFunctionReturnStatement()
 
 					if (res == nil) then break end
 
@@ -540,7 +548,8 @@ local parser = {
 				self:expect(TokenType.BRK_CURL, '}')
 			else
 				local res = self:parseAssignmentOrFunctionCall() or
-								self:parseIfStatement()
+								self:parseIfStatement() or
+								self:parseFunctionReturnStatement()
 
 				if (res == nil) then error("[Parser] expected statement") end
 
