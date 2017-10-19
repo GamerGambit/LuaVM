@@ -344,10 +344,21 @@ local parser = {
 		local namespace = newNamespaceDefinition(nameExpr)
 		self:expect(TokenType.BRK_CURL, '{')
 
+		if (self:eos()) then error("[Parser] unexpected end of file") end
+
+		if (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}') then
+			self:expect(TokenType.BRK_CURL, '}')
+			return namespace
+		end
+
 		while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 			local res = self:parseNamespaceDefinition() or
 						   self:parseFunctionDefinition() or
 						   self:parseNamespaceClassField()
+
+			if (res == nil) then
+				error("[Parser] invalid statement")
+			end
 
 			table.insert(namespace.body, res)
 		end
@@ -409,6 +420,14 @@ local parser = {
 		self:expect(TokenType.BRK_PAREN, ')')
 		self:expect(TokenType.BRK_CURL, '{')
 
+		if (self:eos()) then error() end
+
+		if (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}') then
+			self:expect(TokenType.BRK_CURL, '}')
+			table.insert(func.body, newReturnStatement())
+			return func
+		end
+
 		while (not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 			if (self.currentToken.type == TokenType.KEYWORD and self.currentToken.contents == "return") then
 				self:next()
@@ -419,6 +438,8 @@ local parser = {
 			local res = self:parseLocalVariableDeclaration() or
 							self:parseIfStatement() or
 							self:parseAssignmentOrFunctionCall()
+
+			if (res == nil) then error("[Parser] invalid statement") end
 
 			table.insert(func.body, res)
 		end
@@ -469,12 +490,20 @@ local parser = {
 		local ifstmt = newIfStatement(condExpr)
 
 		if (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '{') then
-			self:next()
+			self:expect(TokenType.BRK_CURL, '{')
+
+			if (self:eos()) then error("[Parser] unexpected end of file") end
+
+			if (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}') then
+				self:expect(TokenType.BRK_CURL, '}')
+				return ifstmt
+			end
+
 			while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 				local res = self:parseAssignmentOrFunctionCall() or
 								self:parseIfStatement()
 
-				if (res == nil) then break end
+				if (res == nil) then error("[Parser] invalid statement") end
 
 				table.insert(ifstmt.thenExprs, res)
 			end
