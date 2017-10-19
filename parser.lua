@@ -61,6 +61,21 @@ local function newReturnStatement(expr)
 	}
 end
 
+local function newFieldList()
+	return {
+		type = "field-list",
+		fields = {}
+	}
+end
+
+local function newField(name, value)
+	return {
+		type = "field",
+		name = name,
+		value = value or { type = "literal-null" }
+	}
+end
+
 local parser = {
 	tree = {},
 
@@ -176,6 +191,19 @@ local parser = {
 
 				str = str .. '\n' .. ws .. '}'
 				return str
+
+			elseif (node.type == "field-list") then
+				local str = ""
+
+				for k,v in ipairs(node.fields) do
+					if (k > 1) then str = str .. '\n' .. ws .. "    " end
+					str = str .. reconstructNode(v)
+				end
+
+				return str
+
+			elseif (node.type == "field") then
+				return "field " .. node.name .. " = " .. reconstructNode(node.value)
 
 			elseif (node.type == "function-definition") then
 				local str = "function " .. node.name .. '('
@@ -318,12 +346,45 @@ local parser = {
 
 		while (not self:eos() and not (self.currentToken.type == TokenType.BRK_CURL and self.currentToken.contents == '}')) do
 			local res = self:parseNamespaceDefinition() or
-						   self:parseFunctionDefinition()
+						   self:parseFunctionDefinition() or
+						   self:parseNamespaceClassField()
+
 			table.insert(namespace.body, res)
 		end
 
 		self:expect(TokenType.BRK_CURL, '}')
 		return namespace
+	end,
+
+	parseNamespaceClassField = function(self)
+		if (self:eos()) then return end
+		if (self.currentToken.type ~= TokenType.KEYWORD) then return end
+		if (self.currentToken.contents ~= "field") then return end
+
+		self:next()
+
+		local fieldList = newFieldList()
+
+		local name = self:expect(TokenType.IDENTIFIER)
+		table.insert(fieldList.fields, newField(name))
+
+		if (self:eos()) then error("[Parser] unexpected end of file") end
+
+		if (self.currentToken.type == TokenType.COMMA) then
+			self:next()
+
+			repeat
+				table.insert(fieldList.fields, newField(self:expect(TokenType.IDENTIFIER)))
+			until (self:eos() or self.currentToken.type ~= TokenType.COMMA)
+
+		elseif (self.currentToken.type == TokenType.ASSIGNMENT) then
+			self:expect(TokenType.ASSIGNMENT, '=')
+			local expr = self:parseExpression(0)
+			if (expr == nil) then error("[Parser] expected expression") end
+			fieldList.fields[1].value = expr
+		end
+
+		return fieldList
 	end,
 
 	parseFunctionDefinition = function(self)
