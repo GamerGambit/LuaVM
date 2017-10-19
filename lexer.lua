@@ -42,6 +42,7 @@ local keywords = {
 	"field",
 	"operator",
 	"enum",
+	"flags",
 	"namespace",
 	"readonly"
 }
